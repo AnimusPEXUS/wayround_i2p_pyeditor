@@ -1,9 +1,13 @@
 
 from gi.repository import Gtk
 
-import main_window
+import org.wayround.pyeditor.main_window
 
-w = main_window.MainWindow()
+
+w = org.wayround.pyeditor.main_window.MainWindow()
+w.cfg.load()
 w.show()
+w.install_mode('dummy')
+w.projects.load_config()
 
 Gtk.main()

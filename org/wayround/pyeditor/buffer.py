@@ -1,58 +1,34 @@
 
-import os.path
-
-from gi.repository import GtkSource
-
 
 class Buffer:
 
+    """
+    Interface for buffers
+    """
+
     def __init__(self, filename=None):
-
-        self.filename = filename
-        self._b = None
-
-        if filename is not None:
-            self.open(filename)
-
         return
 
     def open(self, filename):
-
-        if os.path.exists(filename):
-
-            with open(filename, 'r') as f:
-                t = f.read()
-
-            b = GtkSource.Buffer()
-            b.set_text(t)
-
-            self.filename = filename
+        return
 
     def save(self, filename=None):
+        return
 
-        ret = 0
+    def get_modified(self):
+        return
 
-        if filename is None:
-            filename = self.filename
-
-        t = self._b.get_text(
-            self._b.get_start_iter(),
-            self._b.get_end_iter(),
-            False
-            )
-
-        with open(filename, 'w') as f:
-            f.write(t)
-
-        if ret == 0:
-            self.changed = False
-
-        return ret
+    def set_modified(self, value):
+        return
 
     def get_buffer(self):
-        return self._b
+        return
 
     def destroy(self):
-        if self._b:
-            self._b.destroy()
+        return
+
+    def get_title(self):
+        return
+
+    def get_mode_interface(self):
         return

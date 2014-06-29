@@ -1,6 +1,9 @@
 
 from gi.repository import Gtk
 
+import org.wayround.pyeditor.add_project_dialog
+import org.wayround.pyeditor.buffer
+
 
 class MainMenu:
 
@@ -8,15 +11,17 @@ class MainMenu:
 
         self.main_window = main_window
 
+        self.mode_interface = None
+
         mb = Gtk.MenuBar()
 
         file_mi = Gtk.MenuItem.new_with_label("File")
+        project_mi = Gtk.MenuItem.new_with_label("Project")
         edit_mi = Gtk.MenuItem.new_with_label("Edit")
         source_mi = Gtk.MenuItem.new_with_label("Source")
         self.source_mi = source_mi
         navigate_mi = Gtk.MenuItem.new_with_label("Navigate")
         search_mi = Gtk.MenuItem.new_with_label("Search")
-        project_mi = Gtk.MenuItem.new_with_label("Project")
         window_mi = Gtk.MenuItem.new_with_label("Window")
         help_mi = Gtk.MenuItem.new_with_label("Help")
 
@@ -37,6 +42,17 @@ class MainMenu:
 
         file_me.append(file_open_mi)
         file_me.append(file_close_mi)
+
+        project_me = Gtk.Menu()
+        project_mi.set_submenu(project_me)
+
+        project_add_mi = Gtk.MenuItem.new_with_label("Add")
+        project_delete_mi = Gtk.MenuItem.new_with_label("Delete")
+
+        project_add_mi.connect('activate', self.on_project_add_mi)
+
+        project_me.append(project_add_mi)
+        project_me.append(project_delete_mi)
 
         edit_me = Gtk.Menu()
         edit_mi.set_submenu(edit_me)
@@ -63,4 +79,16 @@ class MainMenu:
         return
 
     def on_file_open_mi(self, mi):
+        return
+
+    def on_project_add_mi(self, mi):
+        d = org.wayround.pyeditor.add_project_dialog.AddProjectDialog(
+            self.main_window
+            )
+        res = d.run()
+        d.destroy()
+
+        if res is not None:
+            self.main_window.projects.add(res['name'], res['directory'])
+
         return

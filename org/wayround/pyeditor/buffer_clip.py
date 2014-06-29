@@ -1,10 +1,9 @@
 
-import collections
 
-from gi.repository import GtkSource
 from gi.repository import GObject
 
 import org.wayround.pyeditor.buffer
+import org.wayround.utils.path
 
 
 class BufferClip(GObject.GObject):
@@ -15,40 +14,39 @@ class BufferClip(GObject.GObject):
 
     def __init__(self, main_window):
 
-        self.buffers = collections.OrderedDict()
+        self.buffers = []
         self.main_window = main_window
 
-        return
-
-    def add(self, name, buff=None):
-
-        if buff is None:
-            buff = GtkSource.Buffer()
-        else:
-            if not isinstance(buff, org.wayround.pyeditor.buffer.Buffer):
-                raise TypeError("`buff' must be None or buffer.Buffer")
-
-        if self.rm(name) == 0:
-            self.buffers[name] = buff
-            self.emit('list-changed')
+        super().__init__()
 
         return
 
-    def rm(self, name):
+    def add(self, buff):
+
+        if not isinstance(buff, org.wayround.pyeditor.buffer.Buffer):
+            raise Exception(
+                "`buff' must be an instance of "
+                "org.wayround.pyeditor.buffer.Buffer"
+                )
+
+        self.buffers.append(buff)
+        self.emit('list-changed')
+
+        return
+
+    def remove(self, buff):
+
+        if not isinstance(buff, org.wayround.pyeditor.buffer.Buffer):
+            raise Exception(
+                "`buff' must be an instance of "
+                "org.wayround.pyeditor.buffer.Buffer"
+                )
+
         ret = 0
-        if name in self.buffers:
-            self.buffers[name].destroy()
+
+        if buff in self.buffers:
+            buff.destroy()
             del self.buffers[name]
             self.emit('list-changed')
-        return ret
 
-    def set(self, name):
-        ret = 0
-        if name not in self.buffers:
-            ret = 1
-        else:
-            self.main_window.source_view.set_buffer(self.buffers[name])
         return ret
-
-    def list(self):
-        return list(self.buffers.keys())
