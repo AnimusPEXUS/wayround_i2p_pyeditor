@@ -20,6 +20,7 @@ class MainWindow:
     def __init__(self):
 
         self.cfg = org.wayround.pyeditor.config.Config(self)
+        self.cfg.load()
 
         self.mode_interface = None
         self.current_buffer = None
@@ -104,11 +105,14 @@ class MainWindow:
             )
 
         paned_v = Gtk.Paned.new(Gtk.Orientation.VERTICAL)
+        self.paned_v=paned_v
         paned_h1 = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
+        self.paned_h1=paned_h1
         paned_h2 = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
-        self._paned_h2 = paned_h2
+        self.paned_h2 = paned_h2
 
         projects_notebook = Gtk.Notebook()
+        self.projects_notebook = projects_notebook
 
         projects_listview_sw = Gtk.ScrolledWindow()
         projects_listview_sw.add(projects_listview)
@@ -120,13 +124,29 @@ class MainWindow:
 
         project_treeview_sw = Gtk.ScrolledWindow()
         project_treeview_sw.add(project_treeview)
+        
+        self.project_label =Gtk.Label("Project") 
+        
         projects_notebook.append_page(
             project_treeview_sw,
-            Gtk.Label("Project")
+            self.project_label
+            )
+            
+        projects_notebook.child_set_property(
+            projects_listview_sw,
+            'tab-expand',
+            False
             )
 
-        paned_v.add1(projects_notebook)
-        paned_v.add2(buffer_listview_sw)
+        projects_notebook.child_set_property(
+            project_treeview_sw,
+            'tab-expand',
+            True
+            )
+
+
+        paned_v.add1(buffer_listview_sw)
+        paned_v.add2(projects_notebook)
 
         paned_h1.add1(paned_v)
         paned_h1.add2(paned_h2)
@@ -137,6 +157,33 @@ class MainWindow:
         b.pack_start(paned_h1, True, True, 0)
 
         window.add(b)
+        
+        mxzd = self.cfg.cfg.get('general', 'maximized', fallback=True)
+        
+        w = self.cfg.cfg.getint('general', 'width', fallback=640)
+        h = self.cfg.cfg.getint('general', 'height', fallback=480)
+        
+        p1_pos = self.cfg.cfg.getint('general', 'paned1_pos', fallback=-100)
+        
+        paned_v.set_position(p1_pos)
+
+        p2_pos = self.cfg.cfg.getint('general', 'paned2_pos', fallback=100)
+        
+        paned_h1.set_position(p2_pos)
+
+        p3_pos = self.cfg.cfg.getint('general', 'paned3_pos', fallback=500)
+        
+        paned_h2.set_position(p3_pos)
+        
+        # print('mxzd {}, w {}, h {}'.format(mxzd, w, h))
+        
+        if not mxzd:
+            window.unmaximize()
+
+        window.resize(w, h)
+        
+        if mxzd:
+            window.maximize()
 
         self._window = window
 
@@ -154,7 +201,7 @@ class MainWindow:
 
     def set_view_widget(self, widget):
         self.source_view = widget
-        self._paned_h2.add1(widget)
+        self.paned_h2.add1(widget)
         widget.show_all()
         return
 
@@ -180,6 +227,17 @@ class MainWindow:
                 ret = buff
 
         return ret
+        
+    def close_current_buffer(self):
+        
+        if self.current_buffer is not None:
+            # TODO: add dialog on case buffer not saved
+            self.buffer_clip.remove(self.current_buffer)
+            self.current_buffer.destroy()
+            self.current_buffer = None
+            self.install_mode('dummy')
+        
+        return
 
     def install_mode(self, name=None, cls=None):
 
@@ -229,6 +287,33 @@ class MainWindow:
         return
 
     def on_delete(self, widget, event):
+        self.cfg.cfg.set(
+            'general', 
+            'maximized', 
+            str(self._window.is_maximized())
+            )
+        ws = self._window.get_size()
+        self.cfg.cfg.set('general', 'width', str(ws[0]))
+        self.cfg.cfg.set('general', 'height', str(ws[1]))
+
+        self.cfg.cfg.set(
+            'general', 
+            'paned1_pos', 
+            str(self.paned_v.get_position())
+            )
+        
+        self.cfg.cfg.set(
+            'general', 
+            'paned2_pos', 
+            str(self.paned_h1.get_position())
+            )
+
+        self.cfg.cfg.set(
+            'general', 
+            'paned3_pos', 
+            str(self.paned_h2.get_position())
+            )
+        
         self.buffer_clip.save_config()
         return Gtk.main_quit()
 
@@ -276,6 +361,10 @@ class MainWindow:
 
         path = self.projects.get(name)
         self.project_treeview.set_root_directory(path)
+
+        self.project_label.set_text(name)
+        
+        self.projects_notebook.set_current_page(1)
 
         return
 

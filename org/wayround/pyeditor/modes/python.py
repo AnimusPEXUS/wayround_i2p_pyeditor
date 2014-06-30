@@ -1,6 +1,7 @@
 
 
 import os.path
+import subprocess
 
 from gi.repository import GObject
 from gi.repository import Gtk
@@ -104,8 +105,6 @@ class Buffer(
         return self.filename
 
     def destroy(self):
-        if self._b:
-            self._b.destroy()
         return
 
     def get_title(self):
@@ -197,6 +196,8 @@ class SourceMenu:
 
         self.mode_interface = mode_interface
         self.main_window = mode_interface.main_window
+        
+        main_window = self.main_window
 
         source_me = Gtk.Menu()
 
@@ -211,6 +212,19 @@ class SourceMenu:
 
         source_pep8_mi = Gtk.MenuItem.new_with_label("Use pep8.py")
         source_autopep8_mi = Gtk.MenuItem.new_with_label("Use autopep8.py")
+        source_autopep8_mi.add_accelerator(
+            'activate',
+            main_window.accel_group,
+            Gdk.KEY_F,
+            Gdk.ModifierType.CONTROL_MASK
+                | Gdk.ModifierType.SHIFT_MASK,
+            Gtk.AccelFlags.VISIBLE
+            )
+        source_autopep8_mi.connect(
+            'activate',
+            self.on_source_autopep8_mi
+            )
+
 
         source_me.append(source_toggle_comment_mi)
         source_me.append(source_comment_mi)
@@ -231,6 +245,43 @@ class SourceMenu:
 
     def destroy(self):
         self.get_widget().destroy()
+        return
+        
+    def on_source_autopep8_mi(self, mi):
+        
+        buff = sekf.main_window.current_buffer
+        
+        if buff is not None:
+            
+            b = buff.get_buffer()
+            
+            t = b.get_text(
+                b.get_start_iter(),
+                b.get_end_iter(),
+                False
+                )
+            
+            strio1 = io.StringIO(t)
+            strio2 = io.StringIO()
+            
+            p=subprocess.Popen(
+                ['autopep8', '--ignore', 'E123'], 
+                strin=strion1, 
+                strout=strio2
+                )
+            res = p.wait()
+            
+            strio1.close()
+                                    
+            strio2.seek(0)
+            t = strio2.read()
+            
+            strio2.close()
+            
+            if res == 0:
+            
+                b.set_text(t)
+        
         return
 
 

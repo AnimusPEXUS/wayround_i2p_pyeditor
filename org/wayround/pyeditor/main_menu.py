@@ -58,6 +58,15 @@ class MainMenu:
         file_save_mi.connect('activate', self.on_file_save_mi)
 
         file_save_as_mi = Gtk.MenuItem.new_with_label("Save as..")
+        file_save_as_mi.add_accelerator(
+            'activate',
+            main_window.accel_group,
+            Gdk.KEY_S,
+            Gdk.ModifierType.CONTROL_MASK
+                | Gdk.ModifierType.SHIFT_MASK
+                | Gdk.ModifierType.MOD1_MASK,
+            Gtk.AccelFlags.VISIBLE
+            )
 
         file_save_all_mi = Gtk.MenuItem.new_with_label("Save All")
         file_save_all_mi.add_accelerator(
@@ -69,6 +78,14 @@ class MainMenu:
             )
 
         file_close_mi = Gtk.MenuItem.new_with_label("Close")
+        file_close_mi.add_accelerator(
+            'activate',
+            main_window.accel_group,
+            Gdk.KEY_W,
+            Gdk.ModifierType.CONTROL_MASK,
+            Gtk.AccelFlags.VISIBLE
+            )
+        file_close_mi.connect('activate', self.on_file_close_mi)
 
         file_me.append(file_open_mi)
         file_me.append(file_save_mi)
@@ -101,8 +118,41 @@ class MainMenu:
         edit_me.append(edit_paste_mi)
 
         source_mi.set_submenu()
+        
+        navigate_me = Gtk.Menu()
+        navigate_mi.set_submenu(navigate_me)
+        
+        navigate_next_buff_mi = Gtk.MenuItem.new_with_label("Next Buffer")
+        navigate_next_buff_mi.add_accelerator(
+            'activate',
+            main_window.accel_group,
+            Gdk.KEY_Page_Down,
+            Gdk.ModifierType.CONTROL_MASK,
+            Gtk.AccelFlags.VISIBLE
+            )
+        navigate_next_buff_mi.connect(
+            'activate',
+            self.on_navigate_next_buff_mi
+            )
+
+        navigate_prev_buff_mi = Gtk.MenuItem.new_with_label("Previous Buffer")
+        navigate_prev_buff_mi.add_accelerator(
+            'activate',
+            main_window.accel_group,
+            Gdk.KEY_Page_Up,
+            Gdk.ModifierType.CONTROL_MASK,
+            Gtk.AccelFlags.VISIBLE
+            )
+        navigate_prev_buff_mi.connect(
+            'activate',
+            self.on_navigate_prev_buff_mi
+            )
+            
+        navigate_me.append(navigate_next_buff_mi)
+        navigate_me.append(navigate_prev_buff_mi)
 
         self._main = mb
+        
 
         return
 
@@ -115,6 +165,12 @@ class MainMenu:
 
     def on_file_open_mi(self, mi):
         print('activated')
+        return
+        
+    def on_file_close_mi(self, mi):
+        
+        self.main_window.close_current_buffer()
+        
         return
 
     def on_file_save_mi(self, mi):
@@ -132,4 +188,74 @@ class MainMenu:
         if res is not None:
             self.main_window.projects.add(res['name'], res['directory'])
 
+        return
+        
+    def on_navigate_next_buff_mi(self, mi):
+
+        buff = self.main_window.current_buffer
+
+        if buff is None or buff in self.main_window.buffer_clip.buffers:
+
+            new_index = -1
+            
+            if buff is None:
+                new_index = 0
+            
+            else:
+                
+                buffs_count = len(self.main_window.buffer_clip.buffers)
+                
+                index = self.main_window.buffer_clip.buffers.index(buff)
+                
+                if index != -1:
+                
+                    if index == buffs_count-1:
+                        new_index = 0
+                    else:
+                        new_index = index + 1
+                        
+                else:
+                    if buffs_count != 0:
+                        new_index=0 
+                    
+            if new_index != -1:
+                self.main_window.set_buffer(
+                    self.main_window.buffer_clip.buffers[new_index]
+                    )
+        
+        return
+        
+    def on_navigate_prev_buff_mi(self, mi):
+
+        buff = self.main_window.current_buffer
+
+        if buff is None or buff in self.main_window.buffer_clip.buffers:
+
+            new_index = -1
+            
+            if buff is None:
+                new_index = 0
+            
+            else:
+            
+                buffs_count = len(self.main_window.buffer_clip.buffers)
+                
+                index = self.main_window.buffer_clip.buffers.index(buff)
+
+                
+                if index != -1:
+                
+                    if index == 0:
+                        new_index = buffs_count-1
+                    else:
+                        new_index = index - 1
+                else:
+                    if buffs_count != 0:
+                        new_index=buffs_count-1 
+                    
+            if new_index != -1:
+                self.main_window.set_buffer(
+                    self.main_window.buffer_clip.buffers[new_index]
+                    )
+        
         return
