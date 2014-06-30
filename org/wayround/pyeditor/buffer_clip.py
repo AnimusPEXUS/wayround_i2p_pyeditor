@@ -1,4 +1,6 @@
 
+import json
+import collections
 
 from gi.repository import GObject
 
@@ -30,6 +32,11 @@ class BufferClip(GObject.GObject):
                 )
 
         self.buffers.append(buff)
+
+        self.save_config()
+
+        buff.connect('changed', self.on_buffer_changed)
+        
         self.emit('list-changed')
 
         return
@@ -47,6 +54,54 @@ class BufferClip(GObject.GObject):
         if buff in self.buffers:
             buff.destroy()
             del self.buffers[name]
+            self.save_config()
             self.emit('list-changed')
 
         return ret
+        
+    def save_config(self):
+
+        cfg = collections.OrderedDict()
+    
+        for i in self.buffers:
+        
+            setting_name = org.wayround.utils.path.realpath(i.get_filename()) 
+        
+            cfg[setting_name] = i.get_config() 
+        
+        if 'buffer_settings' not in self.main_window.cfg.cfg.sections():
+            self.main_window.cfg.cfg.add_section('buffer_settings')
+        
+        self.main_window.cfg.cfg.set(
+            'buffer_settings', 
+            'buffer_state',
+            json.dumps(list(cfg.items()))             
+            )
+                
+        self.main_window.cfg.save()
+        
+        return
+        
+    def load_config(self):
+        
+        cfg = self.main_window.cfg.cfg.get(
+            'buffer_settings', 
+            'buffer_state',
+            fallback=None      
+            )
+            
+        if cfg is not None:
+        
+            cfg = collections.OrderedDict(json.loads(cfg))
+        
+            for i in list(cfg.keys()):
+                res = self.main_window.open_file(i, False)
+                
+                if not isinstance(res, int):
+                    res.set_config(cfg[i])
+        
+        return  
+
+    def on_buffer_changed(self, widg):
+        self.emit('list-changed')
+        return

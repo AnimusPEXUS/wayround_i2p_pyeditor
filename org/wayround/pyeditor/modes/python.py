@@ -1,11 +1,9 @@
 
 
-import collections
 import os.path
 
 from gi.repository import GObject
 from gi.repository import Gtk
-from gi.repository import GtkSource
 from gi.repository import GtkSource
 from gi.repository import Pango
 
@@ -13,9 +11,18 @@ import org.wayround.pyeditor.buffer
 import org.wayround.utils.path
 
 
-class Buffer(org.wayround.pyeditor.buffer.Buffer):
+class Buffer(
+        GObject.GObject,
+        org.wayround.pyeditor.buffer.Buffer
+        ):
+
+    __gsignals__ = {
+        'changed': (GObject.SIGNAL_RUN_FIRST, None, tuple())
+    }
 
     def __init__(self, main_window, filename=None):
+
+        super().__init__()
 
         self.main_window = main_window
         self.filename = filename
@@ -35,8 +42,17 @@ class Buffer(org.wayround.pyeditor.buffer.Buffer):
 
             self._b = GtkSource.Buffer()
             self._b.set_text(t)
+            self._b.set_modified(False)
+            self._b.connect(
+                'modified-changed',
+                self.on_buffer_modified_changed
+                )
 
             self.filename = filename
+
+            self.emit('changed')
+
+        return
 
     def save(self, filename=None):
 
@@ -69,6 +85,10 @@ class Buffer(org.wayround.pyeditor.buffer.Buffer):
             with open(filename, 'w') as f:
                 f.write(t)
 
+            self._b.set_modified(False)
+
+            # self.emit('changed')
+
         return ret
 
     def get_modified(self):
@@ -79,6 +99,9 @@ class Buffer(org.wayround.pyeditor.buffer.Buffer):
 
     def get_buffer(self):
         return self._b
+
+    def get_filename(self):
+        return self.filename
 
     def destroy(self):
         if self._b:
@@ -96,6 +119,16 @@ class Buffer(org.wayround.pyeditor.buffer.Buffer):
         self._b.set_language(
             self.mode_interface.lang_mgr.get_language('python')
             )
+
+    def on_buffer_modified_changed(self, widget):
+        self.emit('changed')
+        return
+        
+    def get_config(self):
+        return {}
+        
+    def set_config(self, data):
+        return
 
 
 class View:
@@ -120,12 +153,13 @@ class View:
             #             GtkSource.DrawSpacesFlags.LEADING |
             #             GtkSource.DrawSpacesFlags.TEXT |
             #             GtkSource.DrawSpacesFlags.TRAILING
-            GtkSource.DrawSpacesFlags(
-                GtkSource.DrawSpacesFlags.ALL
-                & ~GtkSource.DrawSpacesFlags.NEWLINE
-                & ~GtkSource.DrawSpacesFlags.TEXT
-                & ~GtkSource.DrawSpacesFlags.SPACE
-                )
+            GtkSource.DrawSpacesFlags.ALL
+           # GtkSource.DrawSpacesFlags(
+           #     GtkSource.DrawSpacesFlags.ALL
+           #     & ~GtkSource.DrawSpacesFlags.NEWLINE
+           #     & ~GtkSource.DrawSpacesFlags.TEXT
+           #     & ~GtkSource.DrawSpacesFlags.SPACE
+           #     )
             )
         self.view.set_highlight_current_line(True)
         self.view.set_indent_on_tab(True)

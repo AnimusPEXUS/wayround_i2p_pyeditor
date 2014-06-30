@@ -1,5 +1,5 @@
 
-from gi.repository import Gtk
+from gi.repository import Gtk, Gdk
 
 import org.wayround.pyeditor.add_project_dialog
 import org.wayround.pyeditor.buffer
@@ -38,9 +38,44 @@ class MainMenu:
         file_mi.set_submenu(file_me)
 
         file_open_mi = Gtk.MenuItem.new_with_label("Open")
+        file_open_mi.add_accelerator(
+            'activate',
+            main_window.accel_group,
+            Gdk.KEY_O,
+            Gdk.ModifierType.CONTROL_MASK,
+            Gtk.AccelFlags.VISIBLE
+            )
+        file_open_mi.connect('activate', self.on_file_open_mi)
+
+        file_save_mi = Gtk.MenuItem.new_with_label("Save")
+        file_save_mi.add_accelerator(
+            'activate',
+            main_window.accel_group,
+            Gdk.KEY_S,
+            Gdk.ModifierType.CONTROL_MASK,
+            Gtk.AccelFlags.VISIBLE
+            )
+        file_save_mi.connect('activate', self.on_file_save_mi)
+
+        file_save_as_mi = Gtk.MenuItem.new_with_label("Save as..")
+
+        file_save_all_mi = Gtk.MenuItem.new_with_label("Save All")
+        file_save_all_mi.add_accelerator(
+            'activate',
+            main_window.accel_group,
+            Gdk.KEY_S,
+            Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.SHIFT_MASK,
+            Gtk.AccelFlags.VISIBLE
+            )
+
         file_close_mi = Gtk.MenuItem.new_with_label("Close")
 
         file_me.append(file_open_mi)
+        file_me.append(file_save_mi)
+        file_me.append(file_save_as_mi)
+        file_me.append(Gtk.SeparatorMenuItem())
+        file_me.append(file_save_all_mi)
+        file_me.append(Gtk.SeparatorMenuItem())
         file_me.append(file_close_mi)
 
         project_me = Gtk.Menu()
@@ -79,6 +114,12 @@ class MainMenu:
         return
 
     def on_file_open_mi(self, mi):
+        print('activated')
+        return
+
+    def on_file_save_mi(self, mi):
+        if self.main_window.current_buffer is not None:
+            self.main_window.current_buffer.save()
         return
 
     def on_project_add_mi(self, mi):

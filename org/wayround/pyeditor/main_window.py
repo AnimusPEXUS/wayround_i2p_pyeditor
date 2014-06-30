@@ -26,8 +26,11 @@ class MainWindow:
         self.projects = org.wayround.pyeditor.project_clip.ProjectClip(self)
         self.projects.connect('list-changed', self.on_projects_list_changed)
         self.open_projects = []
+        
+        self.accel_group = Gtk.AccelGroup()
 
         window = Gtk.Window()
+        window.add_accel_group(self.accel_group)
         window.connect('delete-event', self.on_delete)
 
         self.main_menu = org.wayround.pyeditor.main_menu.MainMenu(self)
@@ -44,9 +47,11 @@ class MainWindow:
 
         buffer_listview = Gtk.TreeView()
         buffer_listview_sw = Gtk.ScrolledWindow()
-        buffer_listview_sw.add(buffer_listview_sw)
+        buffer_listview_sw.add(buffer_listview)
+        buffer_listview.set_activate_on_single_click(True)
+        buffer_listview.set_headers_visible(False) 
         self.buffer_listview = buffer_listview
-        buffer_listview.set_model(Gtk.ListStore(str))
+        buffer_listview.set_model(Gtk.ListStore(str, str, str))
         buffer_listview.connect(
             'row-activated',
             self.on_buffer_listview_row_activated
@@ -59,8 +64,24 @@ class MainWindow:
         _c.set_title('Name')
         buffer_listview.append_column(_c)
 
+        _c = Gtk.TreeViewColumn()
+        _r = Gtk.CellRendererText()
+        _c.pack_start(_r, False)
+        _c.add_attribute(_r, 'text', 1)
+        _c.set_title('Changed')
+        buffer_listview.append_column(_c)
+
+        _c = Gtk.TreeViewColumn()
+        _r = Gtk.CellRendererText()
+        _c.pack_start(_r, False)
+        _c.add_attribute(_r, 'text', 2)
+        _c.set_title('Path')
+        buffer_listview.append_column(_c)
+
         projects_listview = Gtk.TreeView()
         self.projects_listview = projects_listview
+        projects_listview.set_activate_on_single_click(True)
+        projects_listview.set_headers_visible(False) 
         projects_listview.set_model(Gtk.ListStore(str))
         projects_listview.connect(
             'row-activated',
@@ -137,7 +158,7 @@ class MainWindow:
         widget.show_all()
         return
 
-    def open_file(self, filename):
+    def open_file(self, filename, set_buff=True):
         ret = 0
 
         if not os.path.isfile(filename):
@@ -153,7 +174,10 @@ class MainWindow:
 
                 self.buffer_clip.add(buff)
 
-                self.set_buffer(buff)
+                if set_buff:
+                    self.set_buffer(buff)
+                
+                ret = buff
 
         return ret
 
@@ -205,6 +229,7 @@ class MainWindow:
         return
 
     def on_delete(self, widget, event):
+        self.buffer_clip.save_config()
         return Gtk.main_quit()
 
     def on_buffer_clip_list_changed(self, widget):
@@ -217,7 +242,7 @@ class MainWindow:
             res = m.remove(chi)
 
         for i in self.buffer_clip.buffers:
-            m.append([i.get_title()])
+            m.append([i.get_title(), str(i.get_modified()), i.get_filename()])
 
         self.select_current_buffer_in_list()
 
