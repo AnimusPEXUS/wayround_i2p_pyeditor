@@ -70,5 +70,8 @@ class ModeInterface:
     def get_view(self):
         return self.view.get_widget()
 
+    def get_view_sw(self):
+        return None
+
     def set_buffer(self, buff):
         return

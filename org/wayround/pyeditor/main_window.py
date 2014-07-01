@@ -5,6 +5,7 @@ import importlib
 
 from gi.repository import Gtk
 from gi.repository import GtkSource
+from gi.repository import Pango
 
 import org.wayround.utils.gtk
 
@@ -27,7 +28,7 @@ class MainWindow:
         self.projects = org.wayround.pyeditor.project_clip.ProjectClip(self)
         self.projects.connect('list-changed', self.on_projects_list_changed)
         self.open_projects = []
-        
+
         self.accel_group = Gtk.AccelGroup()
 
         window = Gtk.Window()
@@ -43,14 +44,14 @@ class MainWindow:
 
         menu_bar = self.main_menu.get_widget()
 
-        source_view = None
-        self.source_view = source_view
+        self.source_view = None
+        self.source_view_sw = None
 
         buffer_listview = Gtk.TreeView()
         buffer_listview_sw = Gtk.ScrolledWindow()
         buffer_listview_sw.add(buffer_listview)
         buffer_listview.set_activate_on_single_click(True)
-        buffer_listview.set_headers_visible(False) 
+        buffer_listview.set_headers_visible(False)
         self.buffer_listview = buffer_listview
         buffer_listview.set_model(Gtk.ListStore(str, str, str))
         buffer_listview.connect(
@@ -82,7 +83,7 @@ class MainWindow:
         projects_listview = Gtk.TreeView()
         self.projects_listview = projects_listview
         projects_listview.set_activate_on_single_click(True)
-        projects_listview.set_headers_visible(False) 
+        projects_listview.set_headers_visible(False)
         projects_listview.set_model(Gtk.ListStore(str))
         projects_listview.connect(
             'row-activated',
@@ -96,7 +97,34 @@ class MainWindow:
         _c.set_title('Name')
         projects_listview.append_column(_c)
 
-        outline_listview = Gtk.TreeView()
+        font_desc = Pango.FontDescription.from_string("Clean 9")
+        outline_treeview = Gtk.TreeView()
+        outline_treeview.set_activate_on_single_click(True)
+        outline_treeview.connect(
+            'row-activated',
+            self.on_outline_treeview_row_activated
+            )
+        outline_treeview.override_font(font_desc)
+        outline_treeview.set_model(Gtk.ListStore(str, str))
+        self.outline = outline_treeview
+
+        _c = Gtk.TreeViewColumn()
+        _r = Gtk.CellRendererText()
+        _c.pack_start(_r, False)
+        _c.add_attribute(_r, 'text', 0)
+        _c.set_title('Line')
+        outline_treeview.append_column(_c)
+
+        _c = Gtk.TreeViewColumn()
+        _r = Gtk.CellRendererText()
+        _c.pack_start(_r, False)
+        _c.add_attribute(_r, 'markup', 1)
+        _c.set_title('Text')
+        outline_treeview.append_column(_c)
+
+        outline_treeview_sw = Gtk.ScrolledWindow()
+        outline_treeview_sw.add(outline_treeview)
+
         project_treeview = org.wayround.utils.gtk.DirectoryTreeView()
         self.project_treeview = project_treeview
         project_treeview.connect(
@@ -105,9 +133,9 @@ class MainWindow:
             )
 
         paned_v = Gtk.Paned.new(Gtk.Orientation.VERTICAL)
-        self.paned_v=paned_v
+        self.paned_v = paned_v
         paned_h1 = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
-        self.paned_h1=paned_h1
+        self.paned_h1 = paned_h1
         paned_h2 = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
         self.paned_h2 = paned_h2
 
@@ -124,14 +152,14 @@ class MainWindow:
 
         project_treeview_sw = Gtk.ScrolledWindow()
         project_treeview_sw.add(project_treeview)
-        
-        self.project_label =Gtk.Label("Project") 
-        
+
+        self.project_label = Gtk.Label("Project")
+
         projects_notebook.append_page(
             project_treeview_sw,
             self.project_label
             )
-            
+
         projects_notebook.child_set_property(
             projects_listview_sw,
             'tab-expand',
@@ -144,44 +172,43 @@ class MainWindow:
             True
             )
 
-
         paned_v.add1(buffer_listview_sw)
         paned_v.add2(projects_notebook)
 
         paned_h1.add1(paned_v)
         paned_h1.add2(paned_h2)
 
-        paned_h2.add2(outline_listview)
+        paned_h2.add2(outline_treeview_sw)
 
         b.pack_start(menu_bar, False, False, 0)
         b.pack_start(paned_h1, True, True, 0)
 
         window.add(b)
-        
+
         mxzd = self.cfg.cfg.get('general', 'maximized', fallback=True)
-        
+
         w = self.cfg.cfg.getint('general', 'width', fallback=640)
         h = self.cfg.cfg.getint('general', 'height', fallback=480)
-        
+
         p1_pos = self.cfg.cfg.getint('general', 'paned1_pos', fallback=-100)
-        
+
         paned_v.set_position(p1_pos)
 
         p2_pos = self.cfg.cfg.getint('general', 'paned2_pos', fallback=100)
-        
+
         paned_h1.set_position(p2_pos)
 
         p3_pos = self.cfg.cfg.getint('general', 'paned3_pos', fallback=500)
-        
+
         paned_h2.set_position(p3_pos)
-        
+
         # print('mxzd {}, w {}, h {}'.format(mxzd, w, h))
-        
+
         if not mxzd:
             window.unmaximize()
 
         window.resize(w, h)
-        
+
         if mxzd:
             window.maximize()
 
@@ -199,10 +226,15 @@ class MainWindow:
         self.main_menu.destroy()
         return
 
-    def set_view_widget(self, widget):
-        self.source_view = widget
-        self.paned_h2.add1(widget)
-        widget.show_all()
+    def set_view_widget(self, view, view_sw=None):
+        self.source_view = view
+        self.source_view_sw = view_sw
+        p = self.source_view_sw
+        if p is None:
+            p = self.source_view
+
+        self.paned_h2.add1(p)
+        p.show_all()
         return
 
     def open_file(self, filename, set_buff=True):
@@ -223,20 +255,28 @@ class MainWindow:
 
                 if set_buff:
                     self.set_buffer(buff)
-                
+
                 ret = buff
 
         return ret
-        
+
+    def close_buffer(self, buff):
+        if buff in self.buffer_clip.buffers:
+
+            if buff == self.current_buffer:
+                self.set_buffer(None)
+
+            self.buffer_clip.remove(buff)
+
+        return
+
     def close_current_buffer(self):
-        
-        if self.current_buffer is not None:
-            # TODO: add dialog on case buffer not saved
-            self.buffer_clip.remove(self.current_buffer)
-            self.current_buffer.destroy()
-            self.current_buffer = None
-            self.install_mode('dummy')
-        
+
+        if (self.current_buffer is not None
+                and self.current_buffer in self.buffer_clip.buffers):
+
+            self.close_buffer(self.current_buffer)
+
         return
 
     def install_mode(self, name=None, cls=None):
@@ -250,27 +290,57 @@ class MainWindow:
 
         elif cls is not None:
 
-            if type(self.mode_interface) != cls:
+            if not isinstance(self.mode_interface, cls):
 
                 if self.mode_interface is not None:
                     self.mode_interface.destroy()
 
-                self.mode_interface = cls(self)
+                mi = cls(self)
 
-                menu = self.mode_interface.get_menu()
+                self.mode_interface = mi
+
+                menu = mi.get_menu()
+                menu.show_all()
+
                 self.main_menu.source_mi.set_submenu(menu)
 
-                self.set_view_widget(self.mode_interface.get_view())
+                self.set_view_widget(
+                    mi.get_view(),
+                    mi.get_view_sw()
+                    )
 
         return
 
     def set_buffer(self, buff):
-        if buff in self.buffer_clip.buffers:
-            self.install_mode(cls=buff.get_mode_interface())
-            self.mode_interface.set_buffer(buff)
-            self.current_buffer = buff
+
+        if buff is None or buff not in self.buffer_clip.buffers:
+            self._window.set_title("PyEditor")
+
+            if self.current_buffer is not None:
+                self.current_buffer.save_state()
+
+            self.install_mode('dummy')
+            self.current_buffer = None
             self.select_current_buffer_in_list()
-            self._window.set_title(buff.get_title())
+
+        else:
+
+            if self.current_buffer is not None:
+                self.current_buffer.save_state()
+
+            self.install_mode(cls=buff.get_mode_interface())
+
+            self.mode_interface.set_buffer(buff)
+
+            self.current_buffer = buff
+
+            self.select_current_buffer_in_list()
+
+            self.current_buffer.restore_state()
+
+            self._window.set_title(
+                "{} - PyEditor".format(buff.get_title())
+                )
         return
 
     def select_current_buffer_in_list(self):
@@ -288,8 +358,8 @@ class MainWindow:
 
     def on_delete(self, widget, event):
         self.cfg.cfg.set(
-            'general', 
-            'maximized', 
+            'general',
+            'maximized',
             str(self._window.is_maximized())
             )
         ws = self._window.get_size()
@@ -297,23 +367,23 @@ class MainWindow:
         self.cfg.cfg.set('general', 'height', str(ws[1]))
 
         self.cfg.cfg.set(
-            'general', 
-            'paned1_pos', 
+            'general',
+            'paned1_pos',
             str(self.paned_v.get_position())
             )
-        
+
         self.cfg.cfg.set(
-            'general', 
-            'paned2_pos', 
+            'general',
+            'paned2_pos',
             str(self.paned_h1.get_position())
             )
 
         self.cfg.cfg.set(
-            'general', 
-            'paned3_pos', 
+            'general',
+            'paned3_pos',
             str(self.paned_h2.get_position())
             )
-        
+
         self.buffer_clip.save_config()
         return Gtk.main_quit()
 
@@ -363,7 +433,7 @@ class MainWindow:
         self.project_treeview.set_root_directory(path)
 
         self.project_label.set_text(name)
-        
+
         self.projects_notebook.set_current_page(1)
 
         return
@@ -377,6 +447,18 @@ class MainWindow:
 
         if os.path.isfile(fpth):
             self.open_file(fpth)
+        return
+
+    def on_outline_treeview_row_activated(self, widget, path, column):
+        m = widget.get_model()
+        line = int(m[path][0])
+
+        v = self.source_view
+
+        b = v.get_buffer()
+        i = b.get_iter_at_line(line - 1)
+        b.place_cursor(i)
+        v.scroll_to_iter(i, 0, True, 0.0, 0.5)
         return
 
 

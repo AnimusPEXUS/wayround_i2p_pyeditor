@@ -32,7 +32,7 @@ class BufferClip(GObject.GObject):
                 )
 
         self.buffers.append(buff)
-        
+
         self.buffers.sort(key=lambda x: x.get_filename())
 
         self.save_config()
@@ -85,7 +85,7 @@ class BufferClip(GObject.GObject):
         return
 
     def load_config(self):
-        
+
         cfg = self.main_window.cfg.cfg.get(
             'buffer_settings',
             'buffer_state',
@@ -93,7 +93,7 @@ class BufferClip(GObject.GObject):
             )
 
         if cfg is not None:
-        
+
             cfg = collections.OrderedDict(json.loads(cfg))
 
             for i in list(cfg.keys()):
@@ -102,7 +102,7 @@ class BufferClip(GObject.GObject):
                 if not isinstance(res, int):
                     res.set_config(cfg[i])
 
-        return  
+        return
 
     def on_buffer_changed(self, widg):
         self.emit('list-changed')
