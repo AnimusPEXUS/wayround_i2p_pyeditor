@@ -109,13 +109,20 @@ class MainMenu:
         edit_me = Gtk.Menu()
         edit_mi.set_submenu(edit_me)
 
-        edit_cut_mi = Gtk.MenuItem.new_with_label("Cut")
-        edit_copy_mi = Gtk.MenuItem.new_with_label("Copy")
-        edit_paste_mi = Gtk.MenuItem.new_with_label("Paste")
+        edit_delete_line_mi = Gtk.MenuItem.new_with_label("Delete Line")
+        edit_delete_line_mi.add_accelerator(
+            'activate',
+            main_window.accel_group,
+            Gdk.KEY_D,
+            Gdk.ModifierType.CONTROL_MASK,
+            Gtk.AccelFlags.VISIBLE
+            )
+        edit_delete_line_mi.connect(
+            'activate',
+            self.on_edit_delete_line_mi
+            )
 
-        edit_me.append(edit_cut_mi)
-        edit_me.append(edit_copy_mi)
-        edit_me.append(edit_paste_mi)
+        edit_me.append(edit_delete_line_mi)
 
         source_mi.set_submenu()
 
@@ -148,8 +155,25 @@ class MainMenu:
             self.on_navigate_prev_buff_mi
             )
 
+        navigate_refresh_outline_mi = \
+            Gtk.MenuItem.new_with_label("Refresh Outline")
+
+        navigate_refresh_outline_mi.add_accelerator(
+            'activate',
+            main_window.accel_group,
+            Gdk.KEY_R,
+            Gdk.ModifierType.CONTROL_MASK,
+            Gtk.AccelFlags.VISIBLE
+            )
+        navigate_refresh_outline_mi.connect(
+            'activate',
+            self.on_navigate_refresh_outline_mi
+            )
+
         navigate_me.append(navigate_next_buff_mi)
         navigate_me.append(navigate_prev_buff_mi)
+        navigate_me.append(Gtk.SeparatorMenuItem())
+        navigate_me.append(navigate_refresh_outline_mi)
 
         self._main = mb
 
@@ -256,4 +280,51 @@ class MainMenu:
                     self.main_window.buffer_clip.buffers[new_index]
                     )
 
+        return
+
+    def on_edit_delete_line_mi(self, mi):
+
+        b = self.main_window.current_buffer.get_buffer()
+
+        if b:
+
+            has_selection = b.get_has_selection()
+
+            if not has_selection:
+                ins = b.get_insert()
+                ins_it = b.get_iter_at_mark(ins)
+                ins_it_line = ins_it.get_line()
+
+                line_it = b.get_iter_at_line(ins_it_line)
+                line2_it = b.get_iter_at_line(ins_it_line + 1)
+
+                b.delete(line_it, line2_it)
+
+            else:
+
+                first = b.get_iter_at_mark(b.get_insert()).get_offset()
+                last = b.get_iter_at_mark(b.get_selection_bound()).get_offset()
+
+                if first > last:
+                    _x = last
+                    last = first
+                    first = _x
+                    del _x
+
+                first_iter_line = b.get_iter_at_line(
+                    b.get_iter_at_offset(first).get_line()
+                    )
+
+                last_iter_line_plus_one = b.get_iter_at_line(
+                    b.get_iter_at_offset(last).get_line() + 1
+                    )
+
+                b.delete(first_iter_line, last_iter_line_plus_one)
+
+        return
+
+    def on_navigate_refresh_outline_mi(self, mi):
+        mi = self.main_window.mode_interface
+        if mi is not None and hasattr(mi, 'outline'):
+            mi.outline.reload()
         return

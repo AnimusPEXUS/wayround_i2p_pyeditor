@@ -13,11 +13,19 @@ from gi.repository import GLib
 
 import org.wayround.pyeditor.buffer
 import org.wayround.utils.path
+import org.wayround.utils.timer
+import org.wayround.utils.gtk
 
 
 SYMBOL_REGEXP = re.compile(
     r'^[ \t]*(def |class )(.|\n)*?\s*:[ \t]*$',
-    flags=re.M)
+    flags=re.M
+    )
+
+SYMBOL2_REGEXP = re.compile(
+    r'^([ \t]*[a-zA-Z_][a-zA-Z0-9_\.]*?)[ \t]*\=.*$',
+    flags=re.M
+    )
 
 
 class Buffer(
@@ -356,6 +364,12 @@ class Outline:
 
     def reload(self):
 
+        val = None
+        o_sw = self.main_window.outline_sw
+        vscrl = o_sw.get_vscrollbar()
+        if vscrl:
+            val = vscrl.get_value()
+
         self.clear()
 
         m = self.outline.get_model()
@@ -367,6 +381,8 @@ class Outline:
             False
             )
 
+        res = {}
+
         for i in SYMBOL_REGEXP.finditer(t):
 
             line = b.get_iter_at_offset(i.start()).get_line()
@@ -377,8 +393,35 @@ class Outline:
             #        mingwhile setting it to False
             t2 = b.get_text(s, e, False)
 
-            m.append([str(line + 1), t2])
+            res[line] = t2
 
+            # m.append([str(line + 1), t2])
+
+        # for i in SYMBOL2_REGEXP.finditer(t):
+        #    line = b.get_iter_at_offset(i.start()).get_line()
+        #    s = b.get_iter_at_line(line)
+        #    e = b.get_iter_at_offset(i.end())
+
+        # TODO: figure out why markup is not copyed to outline.
+        # mingwhile setting it to False
+        #    t2 = i.group(1)
+
+        #    if len(t2.strip()) > 5:
+
+        #        res[line] = t2
+
+        for i in sorted(list(res.keys())):
+            m.append([str(i + 1), res[i]])
+
+        if val is not None:
+            vscrl = o_sw.get_vscrollbar()
+            if vscrl:
+                GLib.idle_add(self._restore_vscroll, vscrl, val)
+
+        return
+
+    def _restore_vscroll(self, vscrl, val):
+        vscrl.set_value(val)
         return
 
 
@@ -392,6 +435,14 @@ class ModeInterface:
         self.outline = Outline(self)
 
         self.lang_mgr = GtkSource.LanguageManager.get_default()
+
+        self.on_timer_idle = org.wayround.utils.gtk.to_idle(self.on_timer)
+
+        # self._lt = org.wayround.utils.timer.LoopedTimer(1, self.on_timer_idle)
+        # self._lt.start()
+
+        # self._t_working = False
+
         return
 
     def destroy(self):
@@ -419,4 +470,16 @@ class ModeInterface:
         buff.set_mode_interface(self)
         self.view.set_buffer(buff)
         self.outline.reload()
+        return
+
+    # TODO: delete this method
+    def on_timer(self):
+        if not self._t_working:
+
+            self._t_working = True
+
+            self.outline.reload()
+
+            self._t_working = False
+
         return

@@ -123,6 +123,7 @@ class MainWindow:
         outline_treeview.append_column(_c)
 
         outline_treeview_sw = Gtk.ScrolledWindow()
+        self.outline_sw = outline_treeview_sw
         outline_treeview_sw.add(outline_treeview)
 
         project_treeview = org.wayround.utils.gtk.DirectoryTreeView()
@@ -450,15 +451,17 @@ class MainWindow:
         return
 
     def on_outline_treeview_row_activated(self, widget, path, column):
-        m = widget.get_model()
-        line = int(m[path][0])
 
         v = self.source_view
 
-        b = v.get_buffer()
-        i = b.get_iter_at_line(line - 1)
-        b.place_cursor(i)
-        v.scroll_to_iter(i, 0, True, 0.0, 0.5)
+        m = widget.get_model()
+        line = int(m[path][0])
+
+        if v:
+            b = v.get_buffer()
+            i = b.get_iter_at_line(line - 1)
+            b.place_cursor(i)
+            v.scroll_to_iter(i, 0, True, 0.0, 0.5)
         return
 
 
