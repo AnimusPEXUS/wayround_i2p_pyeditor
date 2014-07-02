@@ -99,7 +99,7 @@ class BufferClip(GObject.GObject):
             for i in list(cfg.keys()):
                 res = self.main_window.open_file(i, False)
 
-                if not isinstance(res, int):
+                if res != 1:
                     res.set_config(cfg[i])
 
         return

@@ -146,9 +146,11 @@ class Buffer(
         return
 
     def get_config(self):
-        return {}
+        return self.state
 
     def set_config(self, data):
+        self.state = data
+        self.restore_state()
         return
 
     def save_state(self):
@@ -269,7 +271,33 @@ class SourceMenu:
         source_uncomment_mi = Gtk.MenuItem.new_with_label("Uncomment")
 
         source_indent_mi = Gtk.MenuItem.new_with_label("Indent")
+        source_indent_mi.add_accelerator(
+            'activate',
+            main_window.accel_group,
+            Gdk.KEY_I,
+            Gdk.ModifierType.CONTROL_MASK,
+            Gtk.AccelFlags.VISIBLE
+            )
+        source_indent_mi.connect(
+            'activate',
+            self.on_indent_mi,
+            False
+            )
+
         source_dedent_mi = Gtk.MenuItem.new_with_label("Dedent")
+        source_dedent_mi.add_accelerator(
+            'activate',
+            main_window.accel_group,
+            Gdk.KEY_I,
+            Gdk.ModifierType.CONTROL_MASK
+            | Gdk.ModifierType.SHIFT_MASK,
+            Gtk.AccelFlags.VISIBLE
+            )
+        source_dedent_mi.connect(
+            'activate',
+            self.on_indent_mi,
+            True
+            )
 
         source_pep8_mi = Gtk.MenuItem.new_with_label("Use pep8.py")
         source_autopep8_mi = Gtk.MenuItem.new_with_label("Use autopep8.py")
@@ -286,15 +314,51 @@ class SourceMenu:
             self.on_source_autopep8_mi
             )
 
+        edit_delete_line_mi = Gtk.MenuItem.new_with_label("Delete Line")
+        edit_delete_line_mi.add_accelerator(
+            'activate',
+            main_window.accel_group,
+            Gdk.KEY_D,
+            Gdk.ModifierType.CONTROL_MASK,
+            Gtk.AccelFlags.VISIBLE
+            )
+        edit_delete_line_mi.connect(
+            'activate',
+            self.on_edit_delete_line_mi
+            )
+
+        navigate_refresh_outline_mi = \
+            Gtk.MenuItem.new_with_label("Refresh Outline")
+
+        navigate_refresh_outline_mi.add_accelerator(
+            'activate',
+            main_window.accel_group,
+            Gdk.KEY_R,
+            Gdk.ModifierType.CONTROL_MASK,
+            Gtk.AccelFlags.VISIBLE
+            )
+        navigate_refresh_outline_mi.connect(
+            'activate',
+            self.on_navigate_refresh_outline_mi
+            )
+
         source_me.append(source_toggle_comment_mi)
         source_me.append(source_comment_mi)
         source_me.append(source_uncomment_mi)
         source_me.append(Gtk.SeparatorMenuItem())
+
+        source_me.append(edit_delete_line_mi)
+        source_me.append(Gtk.SeparatorMenuItem())
+
         source_me.append(source_indent_mi)
         source_me.append(source_dedent_mi)
         source_me.append(Gtk.SeparatorMenuItem())
+
         source_me.append(source_pep8_mi)
         source_me.append(source_autopep8_mi)
+        source_me.append(Gtk.SeparatorMenuItem())
+
+        source_me.append(navigate_refresh_outline_mi)
 
         self._source_me = source_me
 
@@ -339,6 +403,105 @@ class SourceMenu:
                 b.set_text(t)
 
                 buff.restore_state()
+
+        return
+
+    def on_edit_delete_line_mi(self, mi):
+
+        res = self._get_selected_lines()
+
+        if res[0] is not None:
+            b = self.main_window.current_buffer.get_buffer()
+            b.delete(
+                b.get_iter_at_line(res[0]),
+                b.get_iter_at_line(res[1] + 1)
+                )
+
+        return
+
+    def on_navigate_refresh_outline_mi(self, mi):
+        mi = self.main_window.mode_interface
+        if mi is not None and hasattr(mi, 'outline'):
+            mi.outline.reload()
+        return
+
+    def _get_selected_lines(self):
+
+        ret = None, None
+
+        b = self.main_window.current_buffer.get_buffer()
+
+        if b:
+
+            has_selection = b.get_has_selection()
+
+            if not has_selection:
+                ins = b.get_insert()
+                ins_it = b.get_iter_at_mark(ins)
+                ins_it_line = ins_it.get_line()
+
+                ret = ins_it_line, ins_it_line
+
+            else:
+
+                first = b.get_iter_at_mark(b.get_insert()).get_offset()
+                last = b.get_iter_at_mark(b.get_selection_bound()).get_offset()
+
+                if first > last:
+                    _x = last
+                    last = first
+                    first = _x
+                    del _x
+
+                first_l = b.get_iter_at_offset(first).get_line()
+                last_l = first_l
+
+                last_line_off = b.get_iter_at_offset(last).get_line_offset()
+
+                if last_line_off == 0:
+                    last_l = b.get_iter_at_offset(last).get_line() - 1
+                else:
+                    last_l = b.get_iter_at_offset(last).get_line()
+
+                if last_l < first_l:
+                    last_l = first_l
+
+                ret = first_l, last_l
+
+        return ret
+
+    def on_indent_mi(self, mi, de=False):
+        b = self.main_window.current_buffer.get_buffer()
+        res = self._get_selected_lines()
+
+        if res[0] is not None:
+
+            f_i = b.get_iter_at_line(res[0])
+            l_i = b.get_iter_at_offset(
+                b.get_iter_at_line(
+                    res[1] + 1
+                    ).get_offset() - 1,
+                )
+
+            t = b.get_text(f_i, l_i, False)
+
+            t = indent(t, de=de)
+
+            b.delete(f_i, l_i)
+
+            b.insert(f_i, t)
+
+            # l1_i = b.get_iter_at_line(res[0])
+            # l2_i = b.get_iter_at_line(res[1] + 1)
+
+            f_i = b.get_iter_at_line(res[0])
+            l_i = b.get_iter_at_offset(
+                b.get_iter_at_line(
+                    res[1] + 1
+                    ).get_offset() - 1,
+                )
+
+            b.select_range(f_i, l_i)
 
         return
 
@@ -389,26 +552,9 @@ class Outline:
             s = b.get_iter_at_line(line)
             e = b.get_iter_at_offset(i.end())
 
-            # TODO: figure out why markup is not copyed to outline.
-            #        mingwhile setting it to False
             t2 = b.get_text(s, e, False)
 
             res[line] = t2
-
-            # m.append([str(line + 1), t2])
-
-        # for i in SYMBOL2_REGEXP.finditer(t):
-        #    line = b.get_iter_at_offset(i.start()).get_line()
-        #    s = b.get_iter_at_line(line)
-        #    e = b.get_iter_at_offset(i.end())
-
-        # TODO: figure out why markup is not copyed to outline.
-        # mingwhile setting it to False
-        #    t2 = i.group(1)
-
-        #    if len(t2.strip()) > 5:
-
-        #        res[line] = t2
 
         for i in sorted(list(res.keys())):
             m.append([str(i + 1), res[i]])
@@ -437,11 +583,6 @@ class ModeInterface:
         self.lang_mgr = GtkSource.LanguageManager.get_default()
 
         self.on_timer_idle = org.wayround.utils.gtk.to_idle(self.on_timer)
-
-        # self._lt = org.wayround.utils.timer.LoopedTimer(1, self.on_timer_idle)
-        # self._lt.start()
-
-        # self._t_working = False
 
         return
 
@@ -472,14 +613,20 @@ class ModeInterface:
         self.outline.reload()
         return
 
-    # TODO: delete this method
-    def on_timer(self):
-        if not self._t_working:
 
-            self._t_working = True
+def indent(txt, de=False):
+    lines = txt.splitlines()
+    if not de:
+        for i in range(len(lines)):
+            lines[i] = '    {}'.format(lines[i])
+    else:
+        can_dedent = True
+        for i in lines:
+            if not i.startswith('    '):
+                can_dedent = False
+                break
+        if can_dedent:
+            for i in range(len(lines)):
+                lines[i] = lines[i][4:]
 
-            self.outline.reload()
-
-            self._t_working = False
-
-        return
+    return '\n'.join(lines)
