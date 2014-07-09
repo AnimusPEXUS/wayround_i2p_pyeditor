@@ -41,7 +41,6 @@ class ProjectClip(GObject.GObject):
     def rm(self, name):
         ret = 0
         if name in self.projects:
-            self.projects[name].destroy()
             del self.projects[name]
             self.main_window.cfg.cfg.set(
                 'general',

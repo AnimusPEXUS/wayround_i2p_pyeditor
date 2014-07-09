@@ -1,8 +1,12 @@
 
+import os.path
+
 from gi.repository import Gtk, Gdk
 
 import org.wayround.pyeditor.add_project_dialog
 import org.wayround.pyeditor.buffer
+
+import org.wayround.utils.path
 
 
 class MainMenu:
@@ -29,7 +33,7 @@ class MainMenu:
         file_me = Gtk.Menu()
         file_mi.set_submenu(file_me)
 
-        file_open_mi = Gtk.MenuItem.new_with_label("Open")
+        file_open_mi = Gtk.MenuItem.new_with_label("Open..")
         file_open_mi.add_accelerator(
             'activate',
             main_window.accel_group,
@@ -90,13 +94,14 @@ class MainMenu:
         project_me = Gtk.Menu()
         project_mi.set_submenu(project_me)
 
-        project_add_mi = Gtk.MenuItem.new_with_label("Add")
-        project_delete_mi = Gtk.MenuItem.new_with_label("Delete")
+        project_add_mi = Gtk.MenuItem.new_with_label("Add..")
+        project_rm_mi = Gtk.MenuItem.new_with_label("Remove")
 
         project_add_mi.connect('activate', self.on_project_add_mi)
+        project_rm_mi.connect('activate', self.on_project_rm_mi)
 
         project_me.append(project_add_mi)
-        project_me.append(project_delete_mi)
+        project_me.append(project_rm_mi)
 
         source_mi.set_submenu()
 
@@ -144,7 +149,35 @@ class MainMenu:
         return
 
     def on_file_open_mi(self, mi):
-        print('activated')
+
+        path = self.main_window.project_treeview.get_selected_path()
+
+        if not os.path.isdir(path):
+            path_spl = org.wayround.utils.path.split(path)
+            p = org.wayround.utils.path.join(path_spl[:-1])
+            if os.path.isdir(p):
+                path = p
+
+        d = Gtk.FileChooserDialog(
+            "Select File to Open (non-existing file can be selected)",
+            self.main_window._window,
+            Gtk.FileChooserAction.OPEN,
+            [
+                'Ok', Gtk.ResponseType.OK,
+                'Cancel', Gtk.ResponseType.CANCEL
+            ]
+            )
+        d.set_create_folders(True)
+        d.set_current_folder(path)
+        res = d.run()
+        filename = None
+        if res == Gtk.ResponseType.OK:
+            filename = d.get_filename()
+
+            self.main_window.open_file(filename)
+
+        d.destroy()
+
         return
 
     def on_file_close_mi(self, mi):
@@ -167,6 +200,37 @@ class MainMenu:
 
         if res is not None:
             self.main_window.projects.add(res['name'], res['directory'])
+
+        return
+
+    def on_project_rm_mi(self, mi):
+
+        sel = self.main_window.projects_listview.get_selection()
+
+        if sel:
+
+            model, itera = sel.get_selected()
+
+            if itera:
+
+                path = model.get_path(itera)
+
+                name = model[path][0]
+
+                d = Gtk.MessageDialog(
+                    self.main_window.get_widget(),
+                    Gtk.DialogFlags.MODAL,
+                    Gtk.MessageType.QUESTION,
+                    Gtk.ButtonsType.YES_NO,
+                    "Confirm project removal: {}\n\n"
+                    "(none files removed. removing "
+                    "only from PyEditor config records)".format(name)
+                    )
+                res = d.run()
+                d.destroy()
+                if res == Gtk.ResponseType.YES:
+
+                    self.main_window.projects.rm(name)
 
         return
 

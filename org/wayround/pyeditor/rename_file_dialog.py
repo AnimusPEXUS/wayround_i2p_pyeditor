@@ -1,18 +1,24 @@
 
+
 import os.path
 
 from gi.repository import Gtk, Gdk
 
 
-class AddProjectDialog:
+class RenameFileDialog:
 
-    def __init__(self, main_window):
+    def __init__(self, main_window, old_filename, new_filename_base=''):
 
         self.main_window = main_window
+        self.old_filename = old_filename
+
+        if new_filename_base == '':
+            new_filename_base = os.path.basename(old_filename)
+
         self.result = None
 
         window = Gtk.Window(Gtk.WindowType.TOPLEVEL)
-        window.set_title("Adding Project")
+        window.set_title("Rename File")
         window.set_modal(True)
         window.set_transient_for(main_window.get_widget())
         window.set_position(Gtk.WindowPosition.CENTER_ON_PARENT)
@@ -34,27 +40,21 @@ class AddProjectDialog:
 
         window.add(b)
 
-        g.attach(Gtk.Label("Name"), 0, 0, 1, 1)
-        g.attach(Gtk.Label("Directory"), 0, 1, 1, 1)
+        g.attach(Gtk.Label("Current Full Filename"), 0, 0, 1, 1)
+        g.attach(Gtk.Label("New base or relative name"), 0, 1, 1, 1)
 
-        name_entry = Gtk.Entry()
-        name_entry.set_hexpand(True)
-        self._name_entry = name_entry
+        name_label = Gtk.Label(old_filename)
+        name_label.set_hexpand(True)
+        self._name_label = name_label
 
-        directory_entry = Gtk.Entry()
-        directory_entry.set_hexpand(True)
-        self._directory_entry = directory_entry
+        newname_entry = Gtk.Entry()
+        newname_entry.set_text(new_filename_base)
 
-        directory_select_button = Gtk.Button("Browse..")
-        directory_select_button.set_valign(Gtk.Align.CENTER)
-        directory_select_button.connect(
-            'clicked',
-            self.on_directory_select_button
-            )
+        newname_entry.set_hexpand(True)
+        self._newname_entry = newname_entry
 
-        g.attach(name_entry, 1, 0, 2, 1)
-        g.attach(directory_entry, 1, 1, 1, 1)
-        g.attach(directory_select_button, 2, 1, 1, 1)
+        g.attach(name_label, 1, 0, 1, 1)
+        g.attach(newname_entry, 1, 1, 1, 1)
 
         bb = Gtk.ButtonBox.new(Gtk.Orientation.HORIZONTAL)
 
@@ -94,14 +94,11 @@ class AddProjectDialog:
 
     def on_ok_button_clicked(self, widget):
 
-        directory = self._directory_entry.get_text()
+        newname = self._newname_entry.get_text()
 
-        if os.path.isdir(directory):
+        if newname != '':
 
-            self.result = {
-                'name': self._name_entry.get_text(),
-                'directory': directory,
-                }
+            self.result = newname
             self.stop()
 
         else:
@@ -110,7 +107,7 @@ class AddProjectDialog:
                 Gtk.DialogFlags.MODAL,
                 Gtk.MessageType.ERROR,
                 Gtk.ButtonsType.OK,
-                "Directory does not exist"
+                "New name field must be not empty"
                 )
             d.run()
             d.destroy()
@@ -120,27 +117,6 @@ class AddProjectDialog:
     def on_cancel_button_clicked(self, widget):
         self.result = None
         self.stop()
-        return
-
-    def on_directory_select_button(self, widget):
-        d = Gtk.FileChooserDialog(
-            "Select Directory with Project",
-            self._window,
-            Gtk.FileChooserAction.SELECT_FOLDER,
-            [
-                'Ok', Gtk.ResponseType.OK,
-                'Cancel', Gtk.ResponseType.CANCEL
-                ]
-            )
-        res = d.run()
-        filename = None
-        if res == Gtk.ResponseType.OK:
-            filename = d.get_filename()
-
-            self._directory_entry.set_text(filename)
-
-        d.destroy()
-
         return
 
     def stop(self):

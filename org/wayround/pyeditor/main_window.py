@@ -4,6 +4,7 @@ import logging
 import importlib
 
 from gi.repository import Gtk
+from gi.repository import Gdk
 from gi.repository import GtkSource
 from gi.repository import Pango
 
@@ -13,6 +14,7 @@ import org.wayround.pyeditor.buffer_clip
 import org.wayround.pyeditor.config
 import org.wayround.pyeditor.main_menu
 import org.wayround.pyeditor.project_clip
+import org.wayround.pyeditor.project_menu
 import org.wayround.pyeditor.modes.dummy
 
 
@@ -63,26 +65,25 @@ class MainWindow:
         _r = Gtk.CellRendererText()
         _c.pack_start(_r, False)
         _c.add_attribute(_r, 'text', 0)
-        _c.set_title('Name')
+        # _c.set_title('Name')
         buffer_listview.append_column(_c)
 
         _c = Gtk.TreeViewColumn()
         _r = Gtk.CellRendererText()
         _c.pack_start(_r, False)
         _c.add_attribute(_r, 'text', 1)
-        _c.set_title('Changed')
+        # _c.set_title('Changed')
         buffer_listview.append_column(_c)
 
         _c = Gtk.TreeViewColumn()
         _r = Gtk.CellRendererText()
         _c.pack_start(_r, False)
         _c.add_attribute(_r, 'text', 2)
-        _c.set_title('Path')
+        # _c.set_title('Path')
         buffer_listview.append_column(_c)
 
         projects_listview = Gtk.TreeView()
         self.projects_listview = projects_listview
-        projects_listview.set_activate_on_single_click(True)
         projects_listview.set_headers_visible(False)
         projects_listview.set_model(Gtk.ListStore(str))
         projects_listview.connect(
@@ -94,7 +95,7 @@ class MainWindow:
         _r = Gtk.CellRendererText()
         _c.pack_start(_r, False)
         _c.add_attribute(_r, 'text', 0)
-        _c.set_title('Name')
+        # _c.set_title('Name')
         projects_listview.append_column(_c)
 
         font_desc = Pango.FontDescription.from_string("Clean 9")
@@ -106,20 +107,21 @@ class MainWindow:
             )
         outline_treeview.override_font(font_desc)
         outline_treeview.set_model(Gtk.ListStore(str, str))
+        outline_treeview.set_headers_visible(False)
         self.outline = outline_treeview
 
         _c = Gtk.TreeViewColumn()
         _r = Gtk.CellRendererText()
         _c.pack_start(_r, False)
         _c.add_attribute(_r, 'text', 0)
-        _c.set_title('Line')
+        # _c.set_title('Line')
         outline_treeview.append_column(_c)
 
         _c = Gtk.TreeViewColumn()
         _r = Gtk.CellRendererText()
         _c.pack_start(_r, False)
         _c.add_attribute(_r, 'markup', 1)
-        _c.set_title('Text')
+        # _c.set_title('Text')
         outline_treeview.append_column(_c)
 
         outline_treeview_sw = Gtk.ScrolledWindow()
@@ -171,6 +173,16 @@ class MainWindow:
             project_treeview_sw,
             'tab-expand',
             True
+            )
+
+        self.project_menu = org.wayround.pyeditor.project_menu.ProjectMenu(
+            self,
+            self.project_treeview
+            )
+
+        self.project_treeview.connect(
+            'button-press-event',
+            self.on_project_treeview_button_press_event
             )
 
         paned_v.add1(buffer_listview_sw)
@@ -241,23 +253,21 @@ class MainWindow:
     def open_file(self, filename, set_buff=True):
         ret = 0
 
-        if not os.path.isfile(filename):
-            ret = 1
+        if filename.endswith('.py'):
 
-        if ret == 0:
-            if filename.endswith('.py'):
+            mode = load_mode('python')
 
-                mode = load_mode('python')
+            filename = org.wayround.utils.path.realpath(filename)
 
-                buff = mode.Buffer(self)
-                buff.open(filename)
+            buff = mode.Buffer(self)
+            buff.open(filename)
 
-                self.buffer_clip.add(buff)
+            self.buffer_clip.add(buff)
 
-                if set_buff:
-                    self.set_buffer(buff)
+            if set_buff:
+                self.set_buffer(buff)
 
-                ret = buff
+            ret = buff
 
         return ret
 
@@ -463,6 +473,12 @@ class MainWindow:
             b.place_cursor(i)
             v.scroll_to_iter(i, 0, True, 0.0, 0.5)
         return
+
+    def on_project_treeview_button_press_event(self, widget, event):
+        if event.type == Gdk.EventType.BUTTON_PRESS and event.button == 3:
+            self.project_menu.get_widget().popup(
+                None, None, None, None, event.button, event.time
+                )
 
 
 def load_mode(name='dummy'):

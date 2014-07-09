@@ -55,22 +55,24 @@ class Buffer(
 
     def open(self, filename):
 
+        t = ''
+
         if os.path.isfile(filename):
 
             with open(filename, 'r') as f:
                 t = f.read()
 
-            self._b = GtkSource.Buffer()
-            self._b.set_text(t)
-            self._b.set_modified(False)
-            self._b.connect(
-                'modified-changed',
-                self.on_buffer_modified_changed
-                )
+        self._b = GtkSource.Buffer()
+        self._b.set_text(t)
+        self._b.set_modified(False)
+        self._b.connect(
+            'modified-changed',
+            self.on_buffer_modified_changed
+            )
 
-            self.filename = filename
+        self.filename = filename
 
-            self.emit('changed')
+        self.emit('changed')
 
         return
 
@@ -264,11 +266,11 @@ class SourceMenu:
 
         source_me = Gtk.Menu()
 
-        source_toggle_comment_mi = Gtk.MenuItem.new_with_label(
-            "Toggle Comment"
-            )
-        source_comment_mi = Gtk.MenuItem.new_with_label("Comment")
-        source_uncomment_mi = Gtk.MenuItem.new_with_label("Uncomment")
+        # source_toggle_comment_mi = Gtk.MenuItem.new_with_label(
+        #     "Toggle Comment"
+        #     )
+        # source_comment_mi = Gtk.MenuItem.new_with_label("Comment")
+        # source_uncomment_mi = Gtk.MenuItem.new_with_label("Uncomment")
 
         source_indent_mi = Gtk.MenuItem.new_with_label("Indent")
         source_indent_mi.add_accelerator(
@@ -342,10 +344,10 @@ class SourceMenu:
             self.on_navigate_refresh_outline_mi
             )
 
-        source_me.append(source_toggle_comment_mi)
-        source_me.append(source_comment_mi)
-        source_me.append(source_uncomment_mi)
-        source_me.append(Gtk.SeparatorMenuItem())
+        # source_me.append(source_toggle_comment_mi)
+        # source_me.append(source_comment_mi)
+        # source_me.append(source_uncomment_mi)
+        # source_me.append(Gtk.SeparatorMenuItem())
 
         source_me.append(edit_delete_line_mi)
         source_me.append(Gtk.SeparatorMenuItem())
@@ -581,9 +583,6 @@ class ModeInterface:
         self.outline = Outline(self)
 
         self.lang_mgr = GtkSource.LanguageManager.get_default()
-
-        self.on_timer_idle = org.wayround.utils.gtk.to_idle(self.on_timer)
-
         return
 
     def destroy(self):
@@ -618,15 +617,20 @@ def indent(txt, de=False):
     lines = txt.splitlines()
     if not de:
         for i in range(len(lines)):
-            lines[i] = '    {}'.format(lines[i])
+            if lines[i] != '':
+                lines[i] = '    {}'.format(lines[i])
     else:
         can_dedent = True
         for i in lines:
-            if not i.startswith('    '):
+            if not i.startswith('    ') and not i == '':
                 can_dedent = False
                 break
         if can_dedent:
             for i in range(len(lines)):
-                lines[i] = lines[i][4:]
+                if lines[i] != '':
+                    lines[i] = lines[i][4:]
 
     return '\n'.join(lines)
+
+def find_module_file(name):
+    return
