@@ -16,6 +16,12 @@ class View:
 
         return
 
+    def get_view_widget_sw(self):
+        return None
+
+    def get_view_widget(self):
+        return self._main
+
     def get_widget(self):
         return self._main
 
@@ -67,10 +73,13 @@ class ModeInterface:
     def get_menu(self):
         return self.source_menu.get_widget()
 
-    def get_view(self):
+    def get_widget(self):
+        return self.get_view_widget()
+
+    def get_view_widget(self):
         return self.view.get_widget()
 
-    def get_view_sw(self):
+    def get_view_widget_sw(self):
         return None
 
     def set_buffer(self, buff):

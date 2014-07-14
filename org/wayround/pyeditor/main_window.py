@@ -46,6 +46,7 @@ class MainWindow:
 
         menu_bar = self.main_menu.get_widget()
 
+        self.source_widget = None
         self.source_view = None
         self.source_view_sw = None
 
@@ -239,15 +240,13 @@ class MainWindow:
         self.main_menu.destroy()
         return
 
-    def set_view_widget(self, view, view_sw=None):
-        self.source_view = view
-        self.source_view_sw = view_sw
-        p = self.source_view_sw
-        if p is None:
-            p = self.source_view
+    def set_view_widget(self, source_widget, view_widget, view_widget_sw=None):
+        self.source_widget = source_widget
+        self.source_view = view_widget
+        self.source_view_sw = view_widget_sw
 
-        self.paned_h2.add1(p)
-        p.show_all()
+        self.paned_h2.add1(source_widget)
+        source_widget.show_all()
         return
 
     def open_file(self, filename, set_buff=True):
@@ -316,8 +315,9 @@ class MainWindow:
                 self.main_menu.source_mi.set_submenu(menu)
 
                 self.set_view_widget(
-                    mi.get_view(),
-                    mi.get_view_sw()
+                    mi.get_widget(),
+                    mi.get_view_widget(),
+                    mi.get_view_widget_sw()
                     )
 
         return

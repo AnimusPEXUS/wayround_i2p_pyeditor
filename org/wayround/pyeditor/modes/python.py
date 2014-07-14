@@ -208,6 +208,8 @@ class View:
 
     def __init__(self, mode_interface):
 
+        b = Gtk.Box.new(Gtk.Orientation.VERTICAL, 5)
+
         self.mode_interface = mode_interface
         self.main_window = mode_interface.main_window
 
@@ -231,27 +233,81 @@ class View:
         self.view.set_tab_width(4)
 
         sw = Gtk.ScrolledWindow()
+        self._sw = sw
         sw.add(self.view)
 
-        self._main = sw
+        self._status_label = Gtk.Label()
+        self._status_label.set_alignment(0, 0.5)
+        self._status_label.set_selectable(True)
+
+        b.pack_start(sw, True, True, 0)
+        b.pack_start(self._status_label, False, True, 0)
+
+        self._main = b
+
+        self._signal_pointer = None
 
         return
 
-    def get_widget_sw(self):
-        return self._main
+    def get_view_widget_sw(self):
+        return self._sw
+
+    def get_view_widget(self):
+        return self.view
 
     def get_widget(self):
-        return self.view
+        return self._main
 
     def destroy(self):
         if self._main:
             self._main.destroy()
         if self.view:
             self.view.destroy()
+        if self._sw:
+            self._sw.destroy()
         return
 
     def set_buffer(self, buff):
-        self.view.set_buffer(buff.get_buffer())
+
+        b = self.view.get_buffer()
+
+        if b is not None:
+            if self._signal_pointer:
+                b.disconnect(self._signal_pointer)
+
+        b = buff.get_buffer()
+        self.view.set_buffer(b)
+
+        self._signal_pointer = b.connect(
+            'notify::cursor-position',
+            self.on_cursor_position
+            )
+
+        return
+
+    def _refresh_status(self):
+        b = self.view.get_buffer()
+
+        itera = b.get_iter_at_mark(b.get_insert())
+
+        self._status_label.set_text(
+            "line index: {}, "
+            "column index: {}, "
+            "line: {}, "
+            "column: {}, "
+            "offset: {}, "
+            "offset (hex): {:x}".format(
+                itera.get_line(),
+                itera.get_line_offset(),
+                itera.get_line() + 1,
+                itera.get_line_offset() + 1,
+                itera.get_offset(),
+                itera.get_offset()
+                )
+            )
+
+    def on_cursor_position(self, gobject, pspec):
+        self._refresh_status()
         return
 
 
@@ -513,7 +569,7 @@ class Outline:
     def __init__(self, mode_interface):
         self.mode_interface = mode_interface
         self.main_window = mode_interface.main_window
-        self.source_view = mode_interface.get_view()
+        self.source_view = mode_interface.get_view_widget()
         self.outline = self.main_window.outline
 
     def clear(self):
@@ -593,11 +649,14 @@ class ModeInterface:
     def get_menu(self):
         return self.source_menu.get_widget()
 
-    def get_view(self):
-        return self.view.get_widget()
+    def get_view_widget(self):
+        return self.view.get_view_widget()
 
-    def get_view_sw(self):
-        return self.view.get_widget_sw()
+    def get_view_widget_sw(self):
+        return self.view.get_view_widget_sw()
+
+    def get_widget(self):
+        return self.view.get_widget()
 
     def set_buffer(self, buff):
 
@@ -631,6 +690,7 @@ def indent(txt, de=False):
                     lines[i] = lines[i][4:]
 
     return '\n'.join(lines)
+
 
 def find_module_file(name):
     return
