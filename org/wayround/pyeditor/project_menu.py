@@ -91,7 +91,7 @@ class ProjectMenu:
         if res == Gtk.ResponseType.OK:
             filename = d.get_filename()
 
-            self._directory_entry.set_text(filename)
+            os.makedirs(filename)
 
         d.destroy()
         return

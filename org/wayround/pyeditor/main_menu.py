@@ -72,6 +72,7 @@ class MainMenu:
             Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.SHIFT_MASK,
             Gtk.AccelFlags.VISIBLE
             )
+        file_save_all_mi.connect('activate', self.on_file_save_all_mi)
 
         file_close_mi = Gtk.MenuItem.new_with_label("Close")
         file_close_mi.add_accelerator(
@@ -83,6 +84,9 @@ class MainMenu:
             )
         file_close_mi.connect('activate', self.on_file_close_mi)
 
+        file_close_all_mi = Gtk.MenuItem.new_with_label("Close All")
+        file_close_all_mi.connect('activate', self.on_file_close_all_mi)
+
         file_me.append(file_open_mi)
         file_me.append(file_save_mi)
         file_me.append(file_save_as_mi)
@@ -90,6 +94,8 @@ class MainMenu:
         file_me.append(file_save_all_mi)
         file_me.append(Gtk.SeparatorMenuItem())
         file_me.append(file_close_mi)
+        file_me.append(Gtk.SeparatorMenuItem())
+        file_me.append(file_close_all_mi)
 
         project_me = Gtk.Menu()
         project_mi.set_submenu(project_me)
@@ -181,14 +187,25 @@ class MainMenu:
         return
 
     def on_file_close_mi(self, mi):
-
         self.main_window.close_current_buffer()
+        return
 
+    def on_file_close_all_mi(self, mi):
+        for i in self.main_window.buffer_clip.buffers[:]:
+            self.main_window.buffer_clip.remove(i)
         return
 
     def on_file_save_mi(self, mi):
         if self.main_window.current_buffer is not None:
             self.main_window.current_buffer.save()
+        return
+
+    def on_file_save_all_mi(self, mi):
+
+        for i in self.main_window.buffer_clip.buffers:
+            if i.get_modified():
+                i.save()
+
         return
 
     def on_project_add_mi(self, mi):

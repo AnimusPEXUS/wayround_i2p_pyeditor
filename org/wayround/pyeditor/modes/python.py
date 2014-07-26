@@ -246,6 +246,7 @@ class View:
         self._main = b
 
         self._signal_pointer = None
+        self._completion_sig_point = None
 
         return
 
@@ -629,6 +630,61 @@ class Outline:
         return
 
 
+class SourceCompletionProvider(
+        GObject.GObject,
+        GtkSource.CompletionProvider
+        ):
+
+    def __init__(self):
+        super().__init__()
+        print("__init__")
+        return
+
+    def do_get_name(self):
+        print("get_name")
+        return "Python Completion Provider"
+
+    def do_get_icon(self):
+        print("get_icon")
+        return None
+
+    def do_populate(self, context):
+        print("populate")
+        p1 = GtkSource.CompletionItem.new('label1', '111', None, None)
+        p2 = GtkSource.CompletionItem.new('label2', '222', None, None)
+        p3 = GtkSource.CompletionItem.new('label3', '333', None, None)
+        context.add_proposals(self, [p1, p2, p3], True)
+        return
+
+    def do_get_activation(self):
+        print("activation")
+        return GtkSource.CompletionActivation.USER_REQUESTED
+
+    def do_match(self, context):
+        print("match")
+        # itera = context.get_iter()
+        return True
+
+    # def do_get_info_widget(self, proposal):
+    #    return
+
+    def do_update_info(self, proposal, info):
+        print("update_info: {}, {}".format(proposal, info))
+        return
+
+    # def do_get_start_iter(self, context, proposal, itera):
+    #    return
+
+    # def do_activate_proposal(self, proposal, iter):
+    #    return
+
+    def do_get_interactive_delay(self):
+        return -1
+
+    # def do_get_priority(self):
+    #     return 0
+
+
 class ModeInterface:
 
     def __init__(self, main_window):
@@ -639,6 +695,13 @@ class ModeInterface:
         self.outline = Outline(self)
 
         self.lang_mgr = GtkSource.LanguageManager.get_default()
+
+        #self.completion = self.view.get_view_widget().get_completion()
+        #self.completion_provider = SourceCompletionProvider()
+        #res = self.completion.add_provider(self.completion_provider)
+        #print("add_provider: {}".format(res))
+
+        # self.completion.create_context(None)
         return
 
     def destroy(self):
