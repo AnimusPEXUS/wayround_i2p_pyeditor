@@ -277,6 +277,7 @@ class MainWindow:
                 self.set_buffer(None)
 
             self.buffer_clip.remove(buff)
+            buff.destroy()
 
         return
 

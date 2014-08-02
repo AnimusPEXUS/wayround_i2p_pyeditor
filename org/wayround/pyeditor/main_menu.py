@@ -33,7 +33,7 @@ class MainMenu:
         file_me = Gtk.Menu()
         file_mi.set_submenu(file_me)
 
-        file_open_mi = Gtk.MenuItem.new_with_label("Open..")
+        file_open_mi = Gtk.MenuItem.new_with_label("New/Open..")
         file_open_mi.add_accelerator(
             'activate',
             main_window.accel_group,
@@ -192,7 +192,7 @@ class MainMenu:
 
     def on_file_close_all_mi(self, mi):
         for i in self.main_window.buffer_clip.buffers[:]:
-            self.main_window.buffer_clip.remove(i)
+            self.main_window.close_buffer(i)
         return
 
     def on_file_save_mi(self, mi):

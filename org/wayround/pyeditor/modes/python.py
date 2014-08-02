@@ -129,6 +129,7 @@ class Buffer(
         return self.filename
 
     def destroy(self):
+        super().destroy()
         return
 
     def get_title(self):
