@@ -470,12 +470,11 @@ class SourceMenu:
 
         res = self._get_selected_lines()
 
-        if res[0] is not None:
-            b = self.main_window.current_buffer.get_buffer()
-            b.delete(
-                b.get_iter_at_line(res[0]),
-                b.get_iter_at_line(res[1] + 1)
-                )
+        b = self.main_window.current_buffer.get_buffer()
+        b.delete(
+            b.get_iter_at_line(res[0]),
+            b.get_iter_at_line(res[1] + 1)
+            )
 
         return
 
@@ -487,7 +486,7 @@ class SourceMenu:
 
     def _get_selected_lines(self):
 
-        ret = None, None
+        ret = None, None, False
 
         b = self.main_window.current_buffer.get_buffer()
 
@@ -500,7 +499,7 @@ class SourceMenu:
                 ins_it = b.get_iter_at_mark(ins)
                 ins_it_line = ins_it.get_line()
 
-                ret = ins_it_line, ins_it_line
+                ret = ins_it_line, ins_it_line, False
 
             else:
 
@@ -526,7 +525,7 @@ class SourceMenu:
                 if last_l < first_l:
                     last_l = first_l
 
-                ret = first_l, last_l
+                ret = first_l, last_l, True
 
         return ret
 
@@ -534,34 +533,37 @@ class SourceMenu:
         b = self.main_window.current_buffer.get_buffer()
         res = self._get_selected_lines()
 
-        if res[0] is not None:
+        do_final_select = res[2]
 
-            f_i = b.get_iter_at_line(res[0])
-            l_i = b.get_iter_at_offset(
-                b.get_iter_at_line(
-                    res[1] + 1
-                    ).get_offset() - 1,
-                )
+        f_i = b.get_iter_at_line(res[0])
+        l_i = b.get_iter_at_offset(
+            b.get_iter_at_line(
+                res[1] + 1
+                ).get_offset() - 1,
+            )
 
-            t = b.get_text(f_i, l_i, False)
+        t = b.get_text(f_i, l_i, False)
 
-            t = indent(t, de=de)
+        t = indent(t, de=de)
 
-            b.delete(f_i, l_i)
+        b.delete(f_i, l_i)
 
-            b.insert(f_i, t)
+        b.insert(f_i, t)
 
-            # l1_i = b.get_iter_at_line(res[0])
-            # l2_i = b.get_iter_at_line(res[1] + 1)
+        # l1_i = b.get_iter_at_line(res[0])
+        # l2_i = b.get_iter_at_line(res[1] + 1)
 
-            f_i = b.get_iter_at_line(res[0])
-            l_i = b.get_iter_at_offset(
-                b.get_iter_at_line(
-                    res[1] + 1
-                    ).get_offset() - 1,
-                )
+        f_i = b.get_iter_at_line(res[0])
+        l_i = b.get_iter_at_offset(
+            b.get_iter_at_line(
+                res[1] + 1
+                ).get_offset() - 1,
+            )
 
+        if do_final_select:
             b.select_range(f_i, l_i)
+        else:
+            pass
 
         return
 
