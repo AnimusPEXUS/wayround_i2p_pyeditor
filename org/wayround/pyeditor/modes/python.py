@@ -220,6 +220,39 @@ class View:
         self.mode_interface = mode_interface
         self.main_window = mode_interface.main_window
 
+        paned_h2 = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
+        self.paned_h2 = paned_h2
+
+        font_desc = Pango.FontDescription.from_string("Clean 9")
+        outline_treeview = Gtk.TreeView()
+        outline_treeview.set_activate_on_single_click(True)
+        outline_treeview.connect(
+            'row-activated',
+            self.on_outline_treeview_row_activated
+            )
+        outline_treeview.override_font(font_desc)
+        outline_treeview.set_model(Gtk.ListStore(str, str))
+        outline_treeview.set_headers_visible(False)
+        self.outline = outline_treeview
+
+        _c = Gtk.TreeViewColumn()
+        _r = Gtk.CellRendererText()
+        _c.pack_start(_r, False)
+        _c.add_attribute(_r, 'text', 0)
+        # _c.set_title('Line')
+        outline_treeview.append_column(_c)
+
+        _c = Gtk.TreeViewColumn()
+        _r = Gtk.CellRendererText()
+        _c.pack_start(_r, False)
+        _c.add_attribute(_r, 'markup', 1)
+        # _c.set_title('Text')
+        outline_treeview.append_column(_c)
+
+        outline_treeview_sw = Gtk.ScrolledWindow()
+        self.outline_sw = outline_treeview_sw
+        outline_treeview_sw.add(outline_treeview)
+
         font_desc = Pango.FontDescription.from_string("Clean 9")
 
         self.view = GtkSource.View()
@@ -250,10 +283,21 @@ class View:
         b.pack_start(sw, True, True, 0)
         b.pack_start(self._status_label, False, True, 0)
 
-        self._main = b
+        self._main = paned_h2
+
+        paned_h2.add1(b)
+        paned_h2.add2(outline_treeview_sw)
 
         self._signal_pointer = None
         self._completion_sig_point = None
+
+        p3_pos = self.main_window.cfg.cfg.getint(
+            'python',
+            'paned_pos',
+            fallback=500
+            )
+
+        paned_h2.set_position(p3_pos)
 
         return
 
@@ -267,6 +311,13 @@ class View:
         return self._main
 
     def destroy(self):
+
+        self.main_window.cfg.cfg.set(
+            'python',
+            'paned_pos',
+            str(self.paned_h2.get_position())
+            )
+
         if self._main:
             self._main.destroy()
         if self.view:
@@ -316,6 +367,20 @@ class View:
 
     def on_cursor_position(self, gobject, pspec):
         self._refresh_status()
+        return
+
+    def on_outline_treeview_row_activated(self, widget, path, column):
+
+        v = self.view
+
+        m = widget.get_model()
+        line = int(m[path][0])
+
+        if v:
+            b = v.get_buffer()
+            i = b.get_iter_at_line(line - 1)
+            b.place_cursor(i)
+            v.scroll_to_iter(i, 0, True, 0.0, 0.5)
         return
 
 
@@ -580,7 +645,7 @@ class Outline:
         self.mode_interface = mode_interface
         self.main_window = mode_interface.main_window
         self.source_view = mode_interface.get_view_widget()
-        self.outline = self.main_window.outline
+        self.outline = self.mode_interface.get_view().outline
 
     def clear(self):
         m = self.outline.get_model()
@@ -596,7 +661,7 @@ class Outline:
     def reload(self):
 
         val = None
-        o_sw = self.main_window.outline_sw
+        o_sw = self.mode_interface.get_view().outline_sw
         vscrl = o_sw.get_vscrollbar()
         if vscrl:
             val = vscrl.get_value()
@@ -745,6 +810,9 @@ class ModeInterface:
         self.view.set_buffer(buff)
         self.outline.reload()
         return
+        
+    def get_view(self):
+        return self.view
 
 
 def indent(txt, de=False):

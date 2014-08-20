@@ -103,36 +103,6 @@ class MainWindow:
         # _c.set_title('Name')
         projects_listview.append_column(_c)
 
-        font_desc = Pango.FontDescription.from_string("Clean 9")
-        outline_treeview = Gtk.TreeView()
-        outline_treeview.set_activate_on_single_click(True)
-        outline_treeview.connect(
-            'row-activated',
-            self.on_outline_treeview_row_activated
-            )
-        outline_treeview.override_font(font_desc)
-        outline_treeview.set_model(Gtk.ListStore(str, str))
-        outline_treeview.set_headers_visible(False)
-        self.outline = outline_treeview
-
-        _c = Gtk.TreeViewColumn()
-        _r = Gtk.CellRendererText()
-        _c.pack_start(_r, False)
-        _c.add_attribute(_r, 'text', 0)
-        # _c.set_title('Line')
-        outline_treeview.append_column(_c)
-
-        _c = Gtk.TreeViewColumn()
-        _r = Gtk.CellRendererText()
-        _c.pack_start(_r, False)
-        _c.add_attribute(_r, 'markup', 1)
-        # _c.set_title('Text')
-        outline_treeview.append_column(_c)
-
-        outline_treeview_sw = Gtk.ScrolledWindow()
-        self.outline_sw = outline_treeview_sw
-        outline_treeview_sw.add(outline_treeview)
-
         project_treeview = org.wayround.utils.gtk.DirectoryTreeView()
         self.project_treeview = project_treeview
         project_treeview.connect(
@@ -144,8 +114,6 @@ class MainWindow:
         self.paned_v = paned_v
         paned_h1 = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
         self.paned_h1 = paned_h1
-        paned_h2 = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
-        self.paned_h2 = paned_h2
 
         projects_notebook = Gtk.Notebook()
         self.projects_notebook = projects_notebook
@@ -194,9 +162,6 @@ class MainWindow:
         paned_v.add2(projects_notebook)
 
         paned_h1.add1(paned_v)
-        paned_h1.add2(paned_h2)
-
-        paned_h2.add2(outline_treeview_sw)
 
         b.pack_start(menu_bar, False, False, 0)
         b.pack_start(paned_h1, True, True, 0)
@@ -215,10 +180,6 @@ class MainWindow:
         p2_pos = self.cfg.cfg.getint('general', 'paned2_pos', fallback=100)
 
         paned_h1.set_position(p2_pos)
-
-        p3_pos = self.cfg.cfg.getint('general', 'paned3_pos', fallback=500)
-
-        paned_h2.set_position(p3_pos)
 
         # print('mxzd {}, w {}, h {}'.format(mxzd, w, h))
 
@@ -249,7 +210,7 @@ class MainWindow:
         self.source_view = view_widget
         self.source_view_sw = view_widget_sw
 
-        self.paned_h2.add1(source_widget)
+        self.paned_h1.add2(source_widget)
         source_widget.show_all()
         return
 
@@ -457,12 +418,6 @@ class MainWindow:
             str(self.paned_h1.get_position())
             )
 
-        self.cfg.cfg.set(
-            'general',
-            'paned3_pos',
-            str(self.paned_h2.get_position())
-            )
-
         self.buffer_clip.save_config()
         return Gtk.main_quit()
 
@@ -526,20 +481,6 @@ class MainWindow:
 
         if os.path.isfile(fpth):
             self.open_file(fpth)
-        return
-
-    def on_outline_treeview_row_activated(self, widget, path, column):
-
-        v = self.source_view
-
-        m = widget.get_model()
-        line = int(m[path][0])
-
-        if v:
-            b = v.get_buffer()
-            i = b.get_iter_at_line(line - 1)
-            b.place_cursor(i)
-            v.scroll_to_iter(i, 0, True, 0.0, 0.5)
         return
 
     def on_project_treeview_button_press_event(self, widget, event):
