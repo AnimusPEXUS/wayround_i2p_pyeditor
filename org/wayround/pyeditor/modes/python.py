@@ -3,6 +3,7 @@ import io
 import os.path
 import subprocess
 import re
+import modulefinder
 
 from gi.repository import GObject
 from gi.repository import Gtk
@@ -11,11 +12,16 @@ from gi.repository import GtkSource
 from gi.repository import Pango
 from gi.repository import GLib
 
-import org.wayround.pyeditor.buffer
 import org.wayround.utils.path
 import org.wayround.utils.timer
 import org.wayround.utils.gtk
 
+import org.wayround.pyeditor.buffer
+
+
+SUPPORTED_MIME = ['text/x-python']
+
+SUPPORTED_EXT = ['py']
 
 SYMBOL_REGEXP = re.compile(
     r'^[ \t]*(def |class )(.|\n)*?\s*:[ \t]*$',
@@ -715,6 +721,9 @@ class ModeInterface:
     def get_menu(self):
         return self.source_menu.get_widget()
 
+    def get_menu_name(self):
+        return "Python"
+
     def get_view_widget(self):
         return self.view.get_view_widget()
 
@@ -756,7 +765,3 @@ def indent(txt, de=False):
                     lines[i] = lines[i][4:]
 
     return '\n'.join(lines)
-
-
-def find_module_file(name):
-    return

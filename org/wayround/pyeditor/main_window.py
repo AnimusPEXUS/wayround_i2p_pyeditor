@@ -2,6 +2,10 @@
 import os.path
 import logging
 import importlib
+import importlib.util
+import modulefinder
+
+import magic
 
 from gi.repository import Gtk
 from gi.repository import Gdk
@@ -249,14 +253,75 @@ class MainWindow:
         source_widget.show_all()
         return
 
-    def open_file(self, filename, set_buff=True):
+    def open_file(
+            self,
+            filename,
+            set_buff=True,
+            force_mode=None
+            ):
         ret = 0
 
-        if filename.endswith('.py'):
+        filename = org.wayround.utils.path.realpath(filename)
 
-            mode = load_mode('python')
+        mode = MODES['dummy']
 
-            filename = org.wayround.utils.path.realpath(filename)
+        if not force_mode:
+
+            with magic.Magic(flags=magic.MAGIC_MIME_TYPE) as m:
+                file_mime = m.id_filename(filename)
+
+            if file_mime in MODES_MIME_MAP:
+                len_MODES_MIME_MAP_fm = len(MODES_MIME_MAP[file_mime])
+
+                if len_MODES_MIME_MAP_fm == 0:
+                    pass
+                elif len_MODES_MIME_MAP_fm == 1:
+                    mode = MODES_MIME_MAP[file_mime][
+                        list(MODES_MIME_MAP[file_mime].keys())[0]
+                        ]
+                else:
+                    # TODO: create mode selection dialog
+                    pass
+
+            if mode == MODES['dummy']:
+                acceptable_mode_mods = []
+                for i in MODES_EXT_MAP.keys():
+                    if filename.endswith('.{}'.format(i)):
+                        len_MODES_EXT_MAP_fm = len(MODES_EXT_MAP[i])
+
+                        if len_MODES_EXT_MAP_fm == 0:
+                            pass
+                        elif len_MODES_EXT_MAP_fm == 1:
+                            mode = MODES_EXT_MAP[i][
+                                list(MODES_EXT_MAP[i].keys())[0]
+                                ]
+                        else:
+                            # TODO: create mode selection dialog
+                            pass
+
+        else:
+            try:
+                mode = MODES[force_mode]
+            except:
+                logging.exception("error setting mode `{}'".format(force_mode))
+                ret = 2
+
+        if mode == MODES['dummy']:
+            d = Gtk.MessageDialog(
+                self.get_widget(),
+                Gtk.DialogFlags.MODAL,
+                Gtk.MessageType.ERROR,
+                Gtk.ButtonsType.OK,
+                "Can't find suitable mode for file\n`{}'\n({})".format(
+                    filename,
+                    file_mime
+                    )
+                )
+            d.run()
+            d.destroy()
+            ret = 1
+
+        if ret == 0:
 
             buff = mode.Buffer(self)
             buff.open(filename)
@@ -314,6 +379,8 @@ class MainWindow:
                 menu.show_all()
 
                 self.main_menu.source_mi.set_submenu(menu)
+
+                self.main_menu.source_mi.set_label(mi.get_menu_name())
 
                 self.set_view_widget(
                     mi.get_widget(),
@@ -499,3 +566,72 @@ def load_mode(name='dummy'):
     else:
         ret = mod
     return ret
+
+
+def find_modes():
+    mf = modulefinder.ModuleFinder()
+    return list(mf.find_all_submodules(org.wayround.pyeditor.modes))
+
+
+def create_module_map():
+
+    ret = None, None, None
+
+    mime_map = {}
+    ext_map = {}
+    modules = {}
+
+    modes = find_modes()
+
+    for i in modes:
+
+        try:
+
+            mod = importlib.import_module(
+                'org.wayround.pyeditor.modes.{}'.format(i)
+                )
+
+        except:
+            logging.exception("error loading mode module or package")
+        else:
+
+            if not hasattr(mod, 'SUPPORTED_MIME'):
+                logging.error(
+                    "mode module `{}' has not SUPPORTED_MIME attr".format(
+                        mod
+                        )
+                    )
+            else:
+
+                for j in mod.SUPPORTED_MIME:
+                    if not j in mime_map:
+                        mime_map[j] = {}
+
+                    if not mod in mime_map[j]:
+                        mime_map[j][i] = mod
+
+                modules[i] = mod
+
+            if not hasattr(mod, 'SUPPORTED_EXT'):
+                logging.error(
+                    "mode module `{}' has not SUPPORTED_EXT attr".format(
+                        mod
+                        )
+                    )
+            else:
+
+                for j in mod.SUPPORTED_EXT:
+                    if not j in ext_map:
+                        ext_map[j] = {}
+
+                    if not mod in ext_map[j]:
+                        ext_map[j][i] = mod
+
+                modules[i] = mod
+
+    ret = modules, mime_map, ext_map
+
+    return ret
+
+
+MODES, MODES_MIME_MAP, MODES_EXT_MAP = create_module_map()

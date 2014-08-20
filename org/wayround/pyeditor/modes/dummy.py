@@ -2,6 +2,8 @@
 
 from gi.repository import Gtk
 
+SUPPORTED_MIME = []
+SUPPORTED_EXT = []
 
 class View:
 
@@ -72,6 +74,9 @@ class ModeInterface:
 
     def get_menu(self):
         return self.source_menu.get_widget()
+
+    def get_menu_name(self):
+        return "Dummy"
 
     def get_widget(self):
         return self.get_view_widget()
