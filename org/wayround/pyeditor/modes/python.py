@@ -291,11 +291,16 @@ class View:
         self._signal_pointer = None
         self._completion_sig_point = None
 
+        if not self.main_window.cfg.cfg.has_section('python'):
+            self.main_window.cfg.cfg.add_section('python')
+
         p3_pos = self.main_window.cfg.cfg.getint(
             'python',
             'paned_pos',
             fallback=500
             )
+            
+        # print("got position: {}".format(p3_pos))
 
         paned_h2.set_position(p3_pos)
 
@@ -311,12 +316,16 @@ class View:
         return self._main
 
     def destroy(self):
-
+        
+        p = self.paned_h2.get_position()
+        # print("saving position: {}".format(p))
         self.main_window.cfg.cfg.set(
             'python',
             'paned_pos',
-            str(self.paned_h2.get_position())
+            str(p)
             )
+
+        self.main_window.buffer_clip.save_config()
 
         if self._main:
             self._main.destroy()
@@ -763,6 +772,7 @@ class ModeInterface:
 
     def __init__(self, main_window):
         self.main_window = main_window
+
         self.source_menu = SourceMenu(self)
         self.view = View(self)
 

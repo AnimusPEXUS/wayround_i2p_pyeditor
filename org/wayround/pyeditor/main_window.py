@@ -397,6 +397,9 @@ class MainWindow:
         return
 
     def on_delete(self, widget, event):
+
+        self.install_mode('dummy')
+
         self.cfg.cfg.set(
             'general',
             'maximized',
@@ -417,6 +420,8 @@ class MainWindow:
             'paned2_pos',
             str(self.paned_h1.get_position())
             )
+
+        self.destroy()
 
         self.buffer_clip.save_config()
         return Gtk.main_quit()
