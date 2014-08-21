@@ -32,8 +32,7 @@ class Config:
                 collections.OrderedDict((
                     ('general',
                      collections.OrderedDict((
-                         ('projects', '[]'),
-                         ('openfiles', '[]'),
+                         ('projects', '[]')
                          ))
                      ),
                     ))

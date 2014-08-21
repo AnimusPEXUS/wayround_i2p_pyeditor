@@ -13,6 +13,7 @@ from gi.repository import GtkSource
 from gi.repository import Pango
 
 import org.wayround.utils.gtk
+import org.wayround.utils.path
 
 import org.wayround.pyeditor.buffer_clip
 import org.wayround.pyeditor.config
@@ -60,7 +61,16 @@ class MainWindow:
         buffer_listview.set_activate_on_single_click(True)
         buffer_listview.set_headers_visible(False)
         self.buffer_listview = buffer_listview
-        buffer_listview.set_model(Gtk.ListStore(str, str, str))
+        buffer_listview.set_model(
+            Gtk.ListStore(
+                str,
+                str,
+                str,
+                str,
+                str
+                )
+            )
+
         buffer_listview.connect(
             'row-activated',
             self.on_buffer_listview_row_activated
@@ -84,7 +94,22 @@ class MainWindow:
         _r = Gtk.CellRendererText()
         _c.pack_start(_r, False)
         _c.add_attribute(_r, 'text', 2)
-        # _c.set_title('Path')
+        # _c.set_title('Project')
+        buffer_listview.append_column(_c)
+
+        _c = Gtk.TreeViewColumn()
+        _r = Gtk.CellRendererText()
+        _c.pack_start(_r, False)
+        _c.add_attribute(_r, 'text', 3)
+        # _c.set_title('Display Path')
+        buffer_listview.append_column(_c)
+
+        _c = Gtk.TreeViewColumn()
+        _c.set_visible(False)
+        _r = Gtk.CellRendererText()
+        _c.pack_start(_r, False)
+        _c.add_attribute(_r, 'text', 4)
+        # _c.set_title('RealPath')
         buffer_listview.append_column(_c)
 
         projects_listview = Gtk.TreeView()
@@ -435,8 +460,42 @@ class MainWindow:
         while chi is not None and res is not False:
             res = m.remove(chi)
 
+        proj_dict = self.projects.get_dict()
+
         for i in self.buffer_clip.buffers:
-            m.append([i.get_title(), str(i.get_modified()), i.get_filename()])
+
+            b_filename = org.wayround.utils.path.realpath(i.get_filename())
+
+            proj_name = ''
+
+            for j, k in proj_dict.items():
+                k_plus_slash = org.wayround.utils.path.realpath(k) + '/'
+                # print("k_plus_slash == {}".format(k_plus_slash))
+                # print(" ? {}".format(b_filename))
+                if b_filename.startswith(k_plus_slash):
+                    proj_name = j
+                    # print("    proj_name == {}".format(proj_name))
+                    break
+
+            disp_file_path = b_filename
+
+            if proj_name != '':
+                disp_file_path = os.path.dirname(
+                    org.wayround.utils.path.relpath(
+                        b_filename,
+                        org.wayround.utils.path.realpath(proj_dict[proj_name])
+                        )
+                    )
+
+            m.append(
+                [
+                    i.get_title(),
+                    str(i.get_modified()),
+                    proj_name,
+                    disp_file_path,
+                    b_filename
+                    ]
+                )
 
         self.select_current_buffer_in_list()
 

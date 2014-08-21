@@ -73,6 +73,9 @@ class ProjectClip(GObject.GObject):
 
         return ret
 
+    def get_dict(self):
+        return self.projects
+
     def get_list(self):
         return sorted(list(self.projects.keys()))
 
