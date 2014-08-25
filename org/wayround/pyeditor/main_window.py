@@ -80,21 +80,21 @@ class MainWindow:
         _r = Gtk.CellRendererText()
         _c.pack_start(_r, False)
         _c.add_attribute(_r, 'text', 0)
-        # _c.set_title('Name')
+        # _c.set_title('Project')
         buffer_listview.append_column(_c)
 
         _c = Gtk.TreeViewColumn()
         _r = Gtk.CellRendererText()
         _c.pack_start(_r, False)
         _c.add_attribute(_r, 'text', 1)
-        # _c.set_title('Changed')
+        # _c.set_title('Name')
         buffer_listview.append_column(_c)
 
         _c = Gtk.TreeViewColumn()
         _r = Gtk.CellRendererText()
         _c.pack_start(_r, False)
         _c.add_attribute(_r, 'text', 2)
-        # _c.set_title('Project')
+        # _c.set_title('Changed')
         buffer_listview.append_column(_c)
 
         _c = Gtk.TreeViewColumn()
@@ -183,8 +183,14 @@ class MainWindow:
             self.on_project_treeview_button_press_event
             )
 
-        paned_v.add1(buffer_listview_sw)
-        paned_v.add2(projects_notebook)
+        buffer_listview_sw_f = Gtk.Frame()
+        buffer_listview_sw_f.add(buffer_listview_sw)
+
+        projects_notebook_f = Gtk.Frame()
+        projects_notebook_f.add(projects_notebook)
+
+        paned_v.add1(buffer_listview_sw_f)
+        paned_v.add2(projects_notebook_f)
 
         paned_h1.add1(paned_v)
 
@@ -489,9 +495,9 @@ class MainWindow:
 
             m.append(
                 [
+                    proj_name,
                     i.get_title(),
                     str(i.get_modified()),
-                    proj_name,
                     disp_file_path,
                     b_filename
                     ]
