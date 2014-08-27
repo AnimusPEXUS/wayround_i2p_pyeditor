@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 
-from distutils.core import setup
+from setuptools import setup
 
 
 setup(
     name='org_wayround_pyeditor',
-    version='0.2',
+    version='0.2.1',
     description='Simple extansible editor with projects and outline',
     author='Alexey V Gorshkov',
     author_email='animus@wayround.org',
@@ -19,6 +19,7 @@ setup(
         'Operating System :: POSIX'
         ],
     entry_points = {
-        'pyeditor': 'org.wayround.pyeditor.main'
-        }
+        'console_scripts': 'pyeditor = org.wayround.pyeditor.main'
+        },
+    install_requires = ['org_wayround_utils']
     )
