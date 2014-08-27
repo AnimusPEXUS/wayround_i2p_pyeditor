@@ -12,7 +12,7 @@ setup(
     url='https://github.com/AnimusPEXUS/org_wayround_pyeditor',
     packages=[
         'org.wayround.pyeditor',
-        'org.wayround.pyeditor.modules'
+        'org.wayround.pyeditor.modes'
         ],
     classifiers=[
         'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
