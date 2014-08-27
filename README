@@ -1,0 +1,24 @@
+
+I wanted editor to be fast. I wanted editor to do exactly what I
+need. - PyEditor was born.
+
+I want to make it lightweight, simple and extensible. Well.. maybe
+from gi.introspection import Gtk is not so fast, but it's really works
+fine.
+
+Yep! I'm writing it with py3.4 and Gtk+3 PyGobject. It has some modes
+support (for now only Python mode exists). And I'm planning some
+plugin support, maybe for git repositories.
+
+GitHub is currently the main publication point for this software.
+
+This project is registered within the PyPi, so, yes, I want it to be
+installed as easy as:
+
+pip3 install -U org_wayround_pyeditor
+
+This project depends on My other project - org_wayround_utils - it
+should be downloaded and installed automatically with above pip
+command.
+
+https://github.com/AnimusPEXUS/org_wayround_pyeditor
