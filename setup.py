@@ -9,7 +9,7 @@ setup(
     description='Simple extansible editor with projects and outline',
     author='Alexey V Gorshkov',
     author_email='animus@wayround.org',
-    url='https://github.com/AnimusPEXUS/PyEditor',
+    url='https://github.com/AnimusPEXUS/org_wayround_pyeditor',
     packages=[
         'org.wayround.pyeditor',
         'org.wayround.pyeditor.modules'
