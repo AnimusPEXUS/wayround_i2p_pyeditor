@@ -18,8 +18,8 @@ setup(
         'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
         'Operating System :: POSIX'
         ],
-    entry_points = {
+    entry_points={
         'console_scripts': 'pyeditor = org.wayround.pyeditor.main'
         },
-    install_requires = ['org_wayround_utils']
+    install_requires=['org_wayround_utils']
     )

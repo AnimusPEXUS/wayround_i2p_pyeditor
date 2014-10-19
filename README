@@ -22,3 +22,14 @@ should be downloaded and installed automatically with above pip
 command.
 
 https://github.com/AnimusPEXUS/org_wayround_pyeditor
+
+
+SOFTWARE REQUIREMENTS
+=====================
+
+Python3 (I developed it with 3.4)
+filemagic (pip3 install filemagic)
+PyGObject
+pep8
+autopep8
+pylint
