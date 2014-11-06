@@ -395,7 +395,7 @@ class View:
             b = v.get_buffer()
             i = b.get_iter_at_line(line - 1)
             b.place_cursor(i)
-            v.scroll_to_iter(i, 0, True, 0.0, 0.5)
+            v.scroll_to_iter(i, 0, True, 0.0, 0.2)
         return
 
 

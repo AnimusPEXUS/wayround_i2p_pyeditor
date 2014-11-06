@@ -27,8 +27,8 @@ class RenameFileDialog:
 
         b = Gtk.Box.new(Gtk.Orientation.VERTICAL, 5)
         b.set_margin_top(5)
-        b.set_margin_left(5)
-        b.set_margin_right(5)
+        b.set_margin_start(5)
+        b.set_margin_end(5)
         b.set_margin_bottom(5)
 
         g = Gtk.Grid()
