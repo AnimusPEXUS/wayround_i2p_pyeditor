@@ -24,7 +24,7 @@ MODE_NAME = 'python'
 
 SUPPORTED_MIME = ['text/x-python']
 
-SUPPORTED_EXT = ['py']
+SUPPORTED_FNM = ['*.py']
 
 SYMBOL_REGEXP = re.compile(
     r'^[ \t]*(def |class )(.|\n)*?\s*:[ \t]*$',

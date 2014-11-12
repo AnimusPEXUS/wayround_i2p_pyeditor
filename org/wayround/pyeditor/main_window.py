@@ -4,6 +4,7 @@ import logging
 import importlib
 import importlib.util
 import modulefinder
+import fnmatch
 
 import magic
 
@@ -278,15 +279,15 @@ class MainWindow:
 
             if mode == MODES['dummy']:
                 acceptable_mode_mods = []
-                for i in MODES_EXT_MAP.keys():
-                    if filename.endswith('.{}'.format(i)):
-                        len_MODES_EXT_MAP_fm = len(MODES_EXT_MAP[i])
+                for i in MODES_FNM_MAP.keys():
+                    if fnmatch.fnmatch(filename, i):
+                        len_MODES_FNM_MAP_fm = len(MODES_FNM_MAP[i])
 
-                        if len_MODES_EXT_MAP_fm == 0:
+                        if len_MODES_FNM_MAP_fm == 0:
                             pass
-                        elif len_MODES_EXT_MAP_fm == 1:
-                            mode = MODES_EXT_MAP[i][
-                                list(MODES_EXT_MAP[i].keys())[0]
+                        elif len_MODES_FNM_MAP_fm == 1:
+                            mode = MODES_FNM_MAP[i][
+                                list(MODES_FNM_MAP[i].keys())[0]
                                 ]
                         else:
                             # TODO: create mode selection dialog
@@ -624,15 +625,15 @@ def create_module_map():
 
                 modules[i] = mod
 
-            if not hasattr(mod, 'SUPPORTED_EXT'):
+            if not hasattr(mod, 'SUPPORTED_FNM'):
                 logging.error(
-                    "mode module `{}' has not SUPPORTED_EXT attr".format(
+                    "mode module `{}' has not SUPPORTED_FNM attr".format(
                         mod
                         )
                     )
             else:
 
-                for j in mod.SUPPORTED_EXT:
+                for j in mod.SUPPORTED_FNM:
                     if not j in ext_map:
                         ext_map[j] = {}
 
@@ -646,4 +647,4 @@ def create_module_map():
     return ret
 
 
-MODES, MODES_MIME_MAP, MODES_EXT_MAP = create_module_map()
+MODES, MODES_MIME_MAP, MODES_FNM_MAP = create_module_map()

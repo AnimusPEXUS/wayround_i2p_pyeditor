@@ -24,7 +24,7 @@ MODE_NAME = 'javascript'
 
 SUPPORTED_MIME = ['application/javascript']
 
-SUPPORTED_EXT = ['js']
+SUPPORTED_FNM = ['*.js']
 
 
 FUNCTION_REGEXP = re.compile(

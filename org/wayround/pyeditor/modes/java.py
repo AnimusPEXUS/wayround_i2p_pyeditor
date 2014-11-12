@@ -24,7 +24,7 @@ MODE_NAME = 'java'
 
 SUPPORTED_MIME = ['text/x-java-source']
 
-SUPPORTED_EXT = ['java']
+SUPPORTED_FNM = ['*.java']
 
 CLASS_REGEXP = re.compile(
     r'(\@\w+?\s*?)?'

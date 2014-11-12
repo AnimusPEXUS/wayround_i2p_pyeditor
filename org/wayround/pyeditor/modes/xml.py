@@ -24,7 +24,7 @@ MODE_NAME = 'xml'
 
 SUPPORTED_MIME = ['application/xml']
 
-SUPPORTED_EXT = ['xml']
+SUPPORTED_FNM = ['*.xml']
 
 
 class Buffer(org.wayround.pyeditor.module_commons.Buffer):
