@@ -47,7 +47,7 @@ class MainWindow:
         buffer_clip.connect('list-changed', self.on_buffer_clip_list_changed)
         self.buffer_clip = buffer_clip
 
-        b = Gtk.Box.new(Gtk.Orientation.VERTICAL, 5)
+        b = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
 
         menu_bar = self.main_menu.get_widget()
 
@@ -136,6 +136,7 @@ class MainWindow:
             )
 
         paned_v = Gtk.Paned.new(Gtk.Orientation.VERTICAL)
+        # paned_v.set_property('handle-size', 5)
         self.paned_v = paned_v
         paned_h1 = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
         self.paned_h1 = paned_h1

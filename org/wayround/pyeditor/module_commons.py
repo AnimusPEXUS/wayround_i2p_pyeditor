@@ -18,6 +18,15 @@ import org.wayround.utils.gtk
 
 import org.wayround.pyeditor.buffer
 
+C_COMMENT_RE = re.compile(
+    r'/\*.*?\*/',
+    flags=re.M | re.S,
+    )
+
+CPP_COMMENT_RE = re.compile(
+    r'//.*$'    
+    )
+
 
 class Buffer(
         GObject.GObject,
@@ -386,6 +395,63 @@ class View:
         return
 
 
+class Outline:
+
+    def __init__(self, mode_interface):
+        self.mode_interface = mode_interface
+        self.main_window = mode_interface.main_window
+        self.source_view = mode_interface.get_view_widget()
+        self.outline = self.mode_interface.get_view().outline
+
+    def clear(self):
+        m = self.outline.get_model()
+
+        chi = m.get_iter_first()
+        res = True
+
+        while chi is not None and res is not False:
+            res = m.remove(chi)
+
+        return
+
+    def reload(self):
+
+        val = None
+        o_sw = self.mode_interface.get_view().outline_sw
+        vscrl = o_sw.get_vscrollbar()
+        if vscrl:
+            val = vscrl.get_value()
+
+        self.clear()
+
+        m = self.outline.get_model()
+
+        b = self.source_view.get_buffer()
+
+        res = self.search(b)
+
+        for i in sorted(list(res.keys())):
+            m.append([str(i + 1), res[i]])
+
+        if val is not None:
+            vscrl = o_sw.get_vscrollbar()
+            if vscrl:
+                GLib.idle_add(self._restore_vscroll, vscrl, val)
+
+        return
+
+    def search(self):
+        raise Exception(
+            "You must override this method in your class."
+            " It must return dict where key in int and value is str"
+            )
+        return 'python'
+
+    def _restore_vscroll(self, vscrl, val):
+        vscrl.set_value(val)
+        return
+
+
 def get_selected_lines(buff):
     """
     Returns numbers of selected lines
@@ -511,3 +577,53 @@ def delete_selected_lines(buff):
         )
 
     return
+
+
+def find_c_comments(text):
+    """
+    Searches for comments and returns list of ranges
+
+    `text' must be bytes
+    """
+
+    comments_list = []
+
+    for i in C_COMMENT_RE.finditer(text):
+        r = range(i.start(), i.end())
+        comments_list.append(r)
+
+    for i in CPP_COMMENT_RE.finditer(text):
+        r = range(i.start(), i.end())
+        comments_list.append(r)
+
+    ret = merge_c_overlapping_comments(comments_list)
+
+    return ret
+
+
+def merge_c_overlapping_comments(comments_list):
+    ret = []
+
+    for i in comments_list:
+        found = False
+        for j in ret:
+
+            if i.start in j or i.stop in j:
+
+                j_index = ret.index(j)
+
+                if i.start in j and not i.stop in j:
+                    ret[j_index] = range(j.start, i.stop)
+                    j = ret[j_index]
+
+                if i.end in j and not i.start in j:
+                    ret[j_index] = range(i.start, j.stop)
+                    j = ret[j_index]
+
+                found = True
+                break
+
+        if not found:
+            ret.append(i)
+
+    return ret
