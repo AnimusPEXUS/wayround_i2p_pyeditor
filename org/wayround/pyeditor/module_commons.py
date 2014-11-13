@@ -24,7 +24,7 @@ C_COMMENT_RE = re.compile(
     )
 
 CPP_COMMENT_RE = re.compile(
-    r'//.*$'    
+    r'//.*$'
     )
 
 
@@ -627,3 +627,10 @@ def merge_c_overlapping_comments(comments_list):
             ret.append(i)
 
     return ret
+
+
+def delete_trailing_whitespace(text):
+    lines = text.split('\n')
+    for i in range(len(lines)):
+        lines[i] = lines[i].rstrip()
+    return '\n'.join(lines)

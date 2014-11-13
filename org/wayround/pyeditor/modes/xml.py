@@ -148,6 +148,23 @@ class SourceMenu:
             self.on_navigate_refresh_outline_mi
             )
 
+        edit_delete_trailing_whitespace_mi = Gtk.MenuItem.new_with_label(
+            "Delete Trailing Whitespace"
+            )
+        edit_delete_trailing_whitespace_mi.add_accelerator(
+            'activate',
+            main_window.accel_group,
+            Gdk.KEY_F,
+            Gdk.ModifierType.CONTROL_MASK
+            | Gdk.ModifierType.SHIFT_MASK
+            | Gdk.ModifierType.MOD1_MASK,
+            Gtk.AccelFlags.VISIBLE
+            )
+        edit_delete_trailing_whitespace_mi.connect(
+            'activate',
+            self.on_delete_trailing_whitespace_mi
+            )
+
         # source_me.append(source_toggle_comment_mi)
         # source_me.append(source_comment_mi)
         # source_me.append(source_uncomment_mi)
@@ -162,6 +179,7 @@ class SourceMenu:
 
         source_me.append(source_pep8_mi)
         source_me.append(source_autopep8_mi)
+        source_me.append(edit_delete_trailing_whitespace_mi)
         source_me.append(Gtk.SeparatorMenuItem())
 
         source_me.append(navigate_refresh_outline_mi)
@@ -230,6 +248,25 @@ class SourceMenu:
     def on_indent_mi(self, mi, de=False):
         b = self.main_window.current_buffer.get_buffer()
         org.wayround.pyeditor.module_commons.indent_buffer(b, de, 4)
+        return
+
+    def on_delete_trailing_whitespace_mi(self, mi):
+        buff = self.main_window.current_buffer
+        b = buff.get_buffer()
+
+        t = b.get_text(
+            b.get_start_iter(),
+            b.get_end_iter(),
+            False
+            )
+
+        buff.save_state()
+
+        t = org.wayround.pyeditor.module_commons.delete_trailing_whitespace(t)
+
+        b.set_text(t)
+
+        buff.restore_state()
         return
 
 
