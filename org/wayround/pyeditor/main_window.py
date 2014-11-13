@@ -185,14 +185,14 @@ class MainWindow:
             self.on_project_treeview_button_press_event
             )
 
-        buffer_listview_sw_f = Gtk.Frame()
-        buffer_listview_sw_f.add(buffer_listview_sw)
+        # buffer_listview_sw_f = Gtk.Frame()
+        # buffer_listview_sw_f.add(buffer_listview_sw)
 
-        projects_notebook_f = Gtk.Frame()
-        projects_notebook_f.add(projects_notebook)
+        # projects_notebook_f = Gtk.Frame()
+        # projects_notebook_f.add(projects_notebook)
 
-        paned_v.add1(buffer_listview_sw_f)
-        paned_v.add2(projects_notebook_f)
+        paned_v.add1(buffer_listview_sw)
+        paned_v.add2(projects_notebook)
 
         paned_h1.add1(paned_v)
 
@@ -280,7 +280,7 @@ class MainWindow:
             if mode == MODES['dummy']:
                 acceptable_mode_mods = []
                 for i in MODES_FNM_MAP.keys():
-                    if fnmatch.fnmatch(filename, i):
+                    if fnmatch.fnmatch(os.path.basename(filename), i):
                         len_MODES_FNM_MAP_fm = len(MODES_FNM_MAP[i])
 
                         if len_MODES_FNM_MAP_fm == 0:

@@ -3,7 +3,7 @@
 from gi.repository import Gtk
 
 SUPPORTED_MIME = []
-SUPPORTED_EXT = []
+SUPPORTED_FNM = []
 
 class View:
 

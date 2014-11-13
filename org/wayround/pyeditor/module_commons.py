@@ -276,19 +276,19 @@ class View:
         self._status_label.set_alignment(0, 0.5)
         self._status_label.set_selectable(True)
 
-        sw_f = Gtk.Frame()
-        sw_f.add(sw)
+        # sw_f = Gtk.Frame()
+        # sw_f.add(sw)
 
-        b.pack_start(sw_f, True, True, 0)
+        b.pack_start(sw, True, True, 0)
         b.pack_start(self._status_label, False, True, 0)
 
         self._main = paned_h2
 
-        outline_treeview_sw_f = Gtk.Frame()
-        outline_treeview_sw_f.add(outline_treeview_sw)
+        # outline_treeview_sw_f = Gtk.Frame()
+        # outline_treeview_sw_f.add(outline_treeview_sw)
 
         paned_h2.add1(b)
-        paned_h2.add2(outline_treeview_sw_f)
+        paned_h2.add2(outline_treeview_sw)
 
         self._signal_pointer = None
         self._completion_sig_point = None
