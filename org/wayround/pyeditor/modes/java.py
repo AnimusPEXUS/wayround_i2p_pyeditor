@@ -29,14 +29,14 @@ SUPPORTED_FNM = ['*.java']
 CLASS_REGEXP = re.compile(
     r'(\@\w+?\s*?)?'
     r'((public|protected|private|abstract|static|final|strictfp)\s+)*'
-    r'class\s+.*?\{',
+    r'(class|interface)\s+.*?\{',
     flags=re.S
     )
 
 METHOD_REGEXP = re.compile(
     r'(\@\w+\s*)?'
     r'((public|protected|private|abstract|static|final|strictfp)\s+)*'
-    r'\w+\s*(?!new)s*(?!if)s*(?!for)s*(?!while)\s*\(.*?\).*?[{;]',
+    r'\w+\s*(?!(new|catch|if|for|while)\s+)\(.*?\).*?[{;]',
     flags=re.S
     )
 
