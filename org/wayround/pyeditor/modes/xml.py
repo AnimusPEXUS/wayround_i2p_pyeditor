@@ -22,9 +22,16 @@ import org.wayround.pyeditor.module_commons
 
 MODE_NAME = 'xml'
 
-SUPPORTED_MIME = ['application/xml']
+SUPPORTED_MIME = [
+    'application/xml',
+    'application/xhtml+xml',
+    'application/xhtml'
+    ]
 
-SUPPORTED_FNM = ['*.xml']
+SUPPORTED_FNM = [
+    '*.xml',
+    '*.xhtml'
+    ]
 
 
 class Buffer(org.wayround.pyeditor.module_commons.Buffer):

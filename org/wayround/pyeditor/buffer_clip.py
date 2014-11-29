@@ -3,9 +3,46 @@ import json
 import collections
 
 from gi.repository import GObject
+from gi.repository import Gtk
 
 import org.wayround.pyeditor.buffer
 import org.wayround.utils.path
+import org.wayround.utils.gtk
+
+
+class ConfigFileListLoadingProcessWindow:
+
+    def __init__(self):
+        window = Gtk.Window()
+        #window.set_default_size(300, 10)
+        window.set_resizable(False)
+        window.set_decorated(False)
+        window.set_position(Gtk.WindowPosition.CENTER)
+
+        prog_bar = Gtk.ProgressBar()
+        # prog_bar.set_margin_top(10)
+        # prog_bar.set_margin_bottom(10)
+        # prog_bar.set_margin_start(10)
+        # prog_bar.set_margin_end(10)
+
+        window.add(prog_bar)
+
+        self._window = window
+        self._prog_bar = prog_bar
+        return
+
+    def show(self):
+        self.get_widget().show_all()
+        return
+
+    def get_widget(self):
+        return self._window
+
+    def set_fraction(self, value):
+        return self._prog_bar.set_fraction(value)
+
+    def destroy(self):
+        self.get_widget().destroy()
 
 
 class BufferClip(GObject.GObject):
@@ -96,11 +133,29 @@ class BufferClip(GObject.GObject):
 
             cfg = collections.OrderedDict(json.loads(cfg))
 
-            for i in list(cfg.keys()):
+            lck = list(cfg.keys())
+            lck_l = len(lck)
+
+            pw = ConfigFileListLoadingProcessWindow()
+            pw.set_fraction(0)
+            pw.show()
+
+            for ii in range(lck_l):
+                i = lck[ii]
                 res = self.main_window.open_file(i, False)
 
                 if res != 1:
                     res.set_config(cfg[i])
+
+                if ii == 0:
+                    pw.set_fraction(0)
+                else:
+                    pw.set_fraction(1.0 / (lck_l / ii))
+                org.wayround.utils.gtk.process_events()
+
+            pw.set_fraction(1)
+            org.wayround.utils.gtk.process_events()
+            pw.destroy()
 
         return
 

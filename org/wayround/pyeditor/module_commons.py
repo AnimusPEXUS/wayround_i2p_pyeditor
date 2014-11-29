@@ -289,6 +289,8 @@ class View:
 
         paned_h2.add1(b)
         paned_h2.add2(outline_treeview_sw)
+        paned_h2.child_set_property(outline_treeview_sw, 'resize', False)
+        paned_h2.child_set_property(outline_treeview_sw, 'shrink', True)
 
         self._signal_pointer = None
         self._completion_sig_point = None
