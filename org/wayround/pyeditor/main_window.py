@@ -6,7 +6,7 @@ import importlib.util
 import modulefinder
 import fnmatch
 
-import magic
+import mimetypes
 
 from gi.repository import Gtk
 from gi.repository import Gdk
@@ -261,8 +261,7 @@ class MainWindow:
 
         if not force_mode:
 
-            with magic.Magic(flags=magic.MAGIC_MIME_TYPE) as m:
-                file_mime = m.id_filename(filename)
+            file_mime = mimetypes.guess_type(filename)
 
             if file_mime in MODES_MIME_MAP:
                 len_MODES_MIME_MAP_fm = len(MODES_MIME_MAP[file_mime])
