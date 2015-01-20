@@ -17,7 +17,9 @@ class ConfigFileListLoadingProcessWindow:
         #window.set_default_size(300, 10)
         window.set_resizable(False)
         window.set_decorated(False)
+        window.set_deletable(False)
         window.set_position(Gtk.WindowPosition.CENTER)
+        window.set_title("PyEditor")
 
         prog_bar = Gtk.ProgressBar()
         # prog_bar.set_margin_top(10)
@@ -25,7 +27,22 @@ class ConfigFileListLoadingProcessWindow:
         # prog_bar.set_margin_start(10)
         # prog_bar.set_margin_end(10)
 
-        window.add(prog_bar)
+        b = Gtk.Box()
+        b.set_orientation(Gtk.Orientation.VERTICAL)
+
+        b.set_margin_top(5)
+        b.set_margin_bottom(5)
+        b.set_margin_start(5)
+        b.set_margin_end(5)
+        b.set_spacing(5)
+
+        l = Gtk.Label("loading buffers.. please wait.")
+        l.set_alignment(0, 0.5)
+
+        b.pack_start(l, False, False, 0)
+        b.pack_start(prog_bar, False, False, 0)
+
+        window.add(b)
 
         self._window = window
         self._prog_bar = prog_bar
