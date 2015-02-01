@@ -1,9 +1,9 @@
 
 from gi.repository import Gtk
 
-import org.wayround.pyeditor.main_window
+import wayround_org.pyeditor.main_window
 
-w = org.wayround.pyeditor.main_window.MainWindow()
+w = wayround_org.pyeditor.main_window.MainWindow()
 
 w.show()
 w.install_mode('dummy')

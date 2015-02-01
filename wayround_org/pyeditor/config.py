@@ -3,7 +3,7 @@ import collections
 import configparser
 import os.path
 
-import org.wayround.utils.path
+import wayround_org.utils.path
 
 
 class Config:
@@ -12,10 +12,10 @@ class Config:
         self.cfg = configparser.ConfigParser()
 
         if cfg_file is None:
-            cfg_file = org.wayround.utils.path.join(
+            cfg_file = wayround_org.utils.path.join(
                 os.path.expanduser('~')
                 )
-            cfg_file = org.wayround.utils.path.join(
+            cfg_file = wayround_org.utils.path.join(
                 cfg_file, '.config', 'PyEditor', 'config.ini'
                 )
 
@@ -44,7 +44,7 @@ class Config:
 
         ret = 0
 
-        filename = org.wayround.utils.path.abspath(self._cfg_file)
+        filename = wayround_org.utils.path.abspath(self._cfg_file)
 
         d = os.path.dirname(filename)
 

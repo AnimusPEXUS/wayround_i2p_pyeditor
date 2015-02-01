@@ -13,27 +13,27 @@ from gi.repository import Gdk
 from gi.repository import GtkSource
 from gi.repository import Pango
 
-import org.wayround.utils.gtk
-import org.wayround.utils.path
+import wayround_org.utils.gtk
+import wayround_org.utils.path
 
-import org.wayround.pyeditor.buffer_clip
-import org.wayround.pyeditor.config
-import org.wayround.pyeditor.main_menu
-import org.wayround.pyeditor.project_clip
-import org.wayround.pyeditor.project_menu
-import org.wayround.pyeditor.modes.dummy
+import wayround_org.pyeditor.buffer_clip
+import wayround_org.pyeditor.config
+import wayround_org.pyeditor.main_menu
+import wayround_org.pyeditor.project_clip
+import wayround_org.pyeditor.project_menu
+import wayround_org.pyeditor.modes.dummy
 
 
 class MainWindow:
 
     def __init__(self):
 
-        self.cfg = org.wayround.pyeditor.config.Config(self)
+        self.cfg = wayround_org.pyeditor.config.Config(self)
         self.cfg.load()
 
         self.mode_interface = None
         self.current_buffer = None
-        self.projects = org.wayround.pyeditor.project_clip.ProjectClip(self)
+        self.projects = wayround_org.pyeditor.project_clip.ProjectClip(self)
         self.projects.connect('list-changed', self.on_projects_list_changed)
         self.open_projects = []
 
@@ -43,8 +43,8 @@ class MainWindow:
         window.add_accel_group(self.accel_group)
         window.connect('delete-event', self.on_delete)
 
-        self.main_menu = org.wayround.pyeditor.main_menu.MainMenu(self)
-        buffer_clip = org.wayround.pyeditor.buffer_clip.BufferClip(self)
+        self.main_menu = wayround_org.pyeditor.main_menu.MainMenu(self)
+        buffer_clip = wayround_org.pyeditor.buffer_clip.BufferClip(self)
         buffer_clip.connect('list-changed', self.on_buffer_clip_list_changed)
         self.buffer_clip = buffer_clip
 
@@ -129,7 +129,7 @@ class MainWindow:
         # _c.set_title('Name')
         projects_listview.append_column(_c)
 
-        project_treeview = org.wayround.utils.gtk.DirectoryTreeView()
+        project_treeview = wayround_org.utils.gtk.DirectoryTreeView()
         self.project_treeview = project_treeview
         project_treeview.connect(
             'row-activated',
@@ -175,7 +175,7 @@ class MainWindow:
             True
             )
 
-        self.project_menu = org.wayround.pyeditor.project_menu.ProjectMenu(
+        self.project_menu = wayround_org.pyeditor.project_menu.ProjectMenu(
             self,
             self.project_treeview
             )
@@ -255,7 +255,7 @@ class MainWindow:
             ):
         ret = 0
 
-        filename = org.wayround.utils.path.realpath(filename)
+        filename = wayround_org.utils.path.realpath(filename)
 
         mode = MODES['dummy']
 
@@ -471,12 +471,12 @@ class MainWindow:
 
         for i in self.buffer_clip.buffers:
 
-            b_filename = org.wayround.utils.path.realpath(i.get_filename())
+            b_filename = wayround_org.utils.path.realpath(i.get_filename())
 
             proj_name = ''
 
             for j, k in proj_dict.items():
-                k_plus_slash = org.wayround.utils.path.realpath(k) + '/'
+                k_plus_slash = wayround_org.utils.path.realpath(k) + '/'
                 # print("k_plus_slash == {}".format(k_plus_slash))
                 # print(" ? {}".format(b_filename))
                 if b_filename.startswith(k_plus_slash):
@@ -488,9 +488,9 @@ class MainWindow:
 
             if proj_name != '':
                 disp_file_path = os.path.dirname(
-                    org.wayround.utils.path.relpath(
+                    wayround_org.utils.path.relpath(
                         b_filename,
-                        org.wayround.utils.path.realpath(proj_dict[proj_name])
+                        wayround_org.utils.path.realpath(proj_dict[proj_name])
                         )
                     )
 
@@ -545,7 +545,7 @@ class MainWindow:
 
     def on_project_treeview_row_activated(self, widget, path, column):
         pth = self.project_treeview.convert_indices_to_path(path.get_indices())
-        fpth = org.wayround.utils.path.join(
+        fpth = wayround_org.utils.path.join(
             self.project_treeview.get_root_directory(),
             pth
             )
@@ -570,7 +570,7 @@ def load_mode(name='dummy'):
 
     try:
         mod = importlib.import_module(
-            'org.wayround.pyeditor.modes.{}'.format(name)
+            'wayround_org.pyeditor.modes.{}'.format(name)
             )
     except:
         logging.exception("Can't load module `{}'".format(name))
@@ -582,7 +582,7 @@ def load_mode(name='dummy'):
 
 def find_modes():
     mf = modulefinder.ModuleFinder()
-    return list(mf.find_all_submodules(org.wayround.pyeditor.modes))
+    return list(mf.find_all_submodules(wayround_org.pyeditor.modes))
 
 
 def create_module_map():
@@ -600,7 +600,7 @@ def create_module_map():
         try:
 
             mod = importlib.import_module(
-                'org.wayround.pyeditor.modes.{}'.format(i)
+                'wayround_org.pyeditor.modes.{}'.format(i)
                 )
 
         except:

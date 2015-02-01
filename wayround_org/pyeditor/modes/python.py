@@ -12,22 +12,22 @@ from gi.repository import GtkSource
 from gi.repository import Pango
 from gi.repository import GLib
 
-import org.wayround.utils.path
-import org.wayround.utils.timer
-import org.wayround.utils.gtk
+import wayround_org.utils.path
+import wayround_org.utils.timer
+import wayround_org.utils.gtk
 
-import org.wayround.pyeditor.buffer
-import org.wayround.pyeditor.module_commons
+import wayround_org.pyeditor.buffer
+import wayround_org.pyeditor.module_commons
 
 
-MODE_NAME = 'cython_pxd'
+MODE_NAME = 'python'
 
-SUPPORTED_MIME = []
+SUPPORTED_MIME = ['text/x-python']
 
-SUPPORTED_FNM = ['*.pxd']
+SUPPORTED_FNM = ['*.py']
 
 SYMBOL_REGEXP = re.compile(
-    r'^[ \t]*(ctypedef |cdef |def |class |enum)(.|\n)*?\s*:[ \t]*$',
+    r'^[ \t]*(def |class )(.|\n)*?\s*:[ \t]*$',
     flags=re.M
     )
 
@@ -37,14 +37,14 @@ SYMBOL_REGEXP = re.compile(
 #     )
 
 
-class Buffer(org.wayround.pyeditor.module_commons.Buffer):
+class Buffer(wayround_org.pyeditor.module_commons.Buffer):
 
     @staticmethod
     def get_mode_interface():
         return ModeInterface
 
 
-class View(org.wayround.pyeditor.module_commons.View):
+class View(wayround_org.pyeditor.module_commons.View):
 
     @staticmethod
     def get_language_name():
@@ -245,7 +245,7 @@ class SourceMenu:
 
     def on_edit_delete_line_mi(self, mi):
         b = self.main_window.current_buffer.get_buffer()
-        org.wayround.pyeditor.module_commons.delete_selected_lines(b)
+        wayround_org.pyeditor.module_commons.delete_selected_lines(b)
         return
 
     def on_navigate_refresh_outline_mi(self, mi):
@@ -256,11 +256,11 @@ class SourceMenu:
 
     def _get_selected_lines(self):
         b = self.main_window.current_buffer.get_buffer()
-        return org.wayround.pyeditor.module_commons.get_selected_lines(b)
+        return wayround_org.pyeditor.module_commons.get_selected_lines(b)
 
     def on_indent_mi(self, mi, de=False):
         b = self.main_window.current_buffer.get_buffer()
-        org.wayround.pyeditor.module_commons.indent_buffer(b, de, 4)
+        wayround_org.pyeditor.module_commons.indent_buffer(b, de, 4)
         return
 
     def on_delete_trailing_whitespace_mi(self, mi):
@@ -275,7 +275,7 @@ class SourceMenu:
 
         buff.save_state()
 
-        t = org.wayround.pyeditor.module_commons.delete_trailing_whitespace(t)
+        t = wayround_org.pyeditor.module_commons.delete_trailing_whitespace(t)
 
         b.set_text(t)
 
@@ -283,7 +283,7 @@ class SourceMenu:
         return
 
 
-class Outline(org.wayround.pyeditor.module_commons.Outline):
+class Outline(wayround_org.pyeditor.module_commons.Outline):
 
     def search(self, buff):
         res = {}
@@ -366,7 +366,7 @@ class ModeInterface:
 
     @staticmethod
     def get_menu_name():
-        return "Cython/pxd"
+        return "Python"
 
     def __init__(self, main_window):
         self.main_window = main_window
@@ -408,7 +408,7 @@ class ModeInterface:
         if not isinstance(buff, Buffer):
             raise Exception(
                 "`buff' must be an instance of "
-                "org.wayround.pyeditor.modes.python.Buffer"
+                "wayround_org.pyeditor.modes.python.Buffer"
                 )
 
         buff.set_mode_interface(self)
@@ -422,4 +422,4 @@ class ModeInterface:
 
 
 def indent(txt, de=False):
-    return org.wayround.pyeditor.module_commons.indent_text(txt, de, 4)
+    return wayround_org.pyeditor.module_commons.indent_text(txt, de, 4)

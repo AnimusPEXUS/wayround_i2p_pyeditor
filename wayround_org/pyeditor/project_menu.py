@@ -5,12 +5,12 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GLib
 
-import org.wayround.utils.gtk
-import org.wayround.utils.path
-import org.wayround.utils.file
-import org.wayround.utils.error
+import wayround_org.utils.gtk
+import wayround_org.utils.path
+import wayround_org.utils.file
+import wayround_org.utils.error
 
-import org.wayround.pyeditor.rename_file_dialog
+import wayround_org.pyeditor.rename_file_dialog
 
 
 class ProjectMenu:
@@ -19,11 +19,11 @@ class ProjectMenu:
 
         if not isinstance(
                 files_tree,
-                org.wayround.utils.gtk.DirectoryTreeView
+                wayround_org.utils.gtk.DirectoryTreeView
                 ):
             raise TypeError(
                 "`files_tree' must be instance of "
-                "org.wayround.utils.gtk.DirectoryTreeView"
+                "wayround_org.utils.gtk.DirectoryTreeView"
                 )
 
         self.main_window = main_window
@@ -71,8 +71,8 @@ class ProjectMenu:
         path = self.main_window.project_treeview.get_selected_path()
 
         if not os.path.isdir(path):
-            path_spl = org.wayround.utils.path.split(path)
-            p = org.wayround.utils.path.join(path_spl[:-1])
+            path_spl = wayround_org.utils.path.split(path)
+            p = wayround_org.utils.path.join(path_spl[:-1])
             if os.path.isdir(p):
                 path = p
 
@@ -100,7 +100,7 @@ class ProjectMenu:
 
         path = self.main_window.project_treeview.get_selected_path()
 
-        d = org.wayround.pyeditor.rename_file_dialog.RenameFileDialog(
+        d = wayround_org.pyeditor.rename_file_dialog.RenameFileDialog(
             self.main_window,
             path,
             ''
@@ -110,12 +110,12 @@ class ProjectMenu:
         if res is not None:
 
             d = os.path.dirname(path)
-            dn = org.wayround.utils.path.join(d, res)
+            dn = wayround_org.utils.path.join(d, res)
             try:
                 os.rename(path, dn)
             except:
 
-                t = org.wayround.utils.error.return_exception_info(
+                t = wayround_org.utils.error.return_exception_info(
                     sys.exc_info()
                     )
 
@@ -129,9 +129,9 @@ class ProjectMenu:
                 d.run()
                 d.destroy()
 
-            pth_spl = org.wayround.utils.path.split(path)[:-1]
+            pth_spl = wayround_org.utils.path.split(path)[:-1]
             if len(pth_spl) > 0:
-                pth = org.wayround.utils.path.join(pth_spl)
+                pth = wayround_org.utils.path.join(pth_spl)
 
                 self.main_window.project_treeview.load_dir(
                     self.main_window.project_treeview.
@@ -154,11 +154,11 @@ class ProjectMenu:
         res = d.run()
         d.destroy()
         if res == Gtk.ResponseType.YES:
-            org.wayround.utils.file.remove_if_exists(path)
+            wayround_org.utils.file.remove_if_exists(path)
 
-            pth_spl = org.wayround.utils.path.split(path)[:-1]
+            pth_spl = wayround_org.utils.path.split(path)[:-1]
             if len(pth_spl) > 0:
-                pth = org.wayround.utils.path.join(pth_spl)
+                pth = wayround_org.utils.path.join(pth_spl)
 
                 self.main_window.project_treeview.load_dir(
                     self.main_window.project_treeview.
