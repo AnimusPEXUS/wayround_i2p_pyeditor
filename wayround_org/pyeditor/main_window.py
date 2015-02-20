@@ -40,6 +40,7 @@ class MainWindow:
         self.accel_group = Gtk.AccelGroup()
 
         window = Gtk.Window()
+        window.set_title("PyEditor")
         window.add_accel_group(self.accel_group)
         window.connect('delete-event', self.on_delete)
 
@@ -527,6 +528,8 @@ class MainWindow:
     def on_buffer_listview_row_activated(self, widget, path, column):
         ind = path.get_indices()
         self.set_buffer(self.buffer_clip.buffers[ind[0]])
+        if self.source_view is not None:
+            self.source_view.grab_focus()
         return
 
     def on_projects_listview_row_activated(self, widget, path, column):
@@ -552,6 +555,9 @@ class MainWindow:
 
         if os.path.isfile(fpth):
             self.open_file(fpth)
+
+        if self.source_view is not None:
+            self.source_view.grab_focus()
         return
 
     def on_project_treeview_button_press_event(self, widget, event):

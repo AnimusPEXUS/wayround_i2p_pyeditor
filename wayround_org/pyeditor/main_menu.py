@@ -284,6 +284,9 @@ class MainMenu:
                     self.main_window.buffer_clip.buffers[new_index]
                     )
 
+        if self.main_window.source_view is not None:
+            self.main_window.source_view.grab_focus()
+
         return
 
     def on_navigate_prev_buff_mi(self, mi):
@@ -317,5 +320,8 @@ class MainMenu:
                 self.main_window.set_buffer(
                     self.main_window.buffer_clip.buffers[new_index]
                     )
+
+        if self.main_window.source_view is not None:
+            self.main_window.source_view.grab_focus()
 
         return
