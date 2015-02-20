@@ -65,7 +65,17 @@ class ConfigFileListLoadingProcessWindow:
 class BufferClip(GObject.GObject):
 
     __gsignals__ = {
-        'list-changed': (GObject.SIGNAL_RUN_FIRST, None, tuple())
+        'list-changed-add': (
+            GObject.SIGNAL_RUN_FIRST,
+            None,
+            (object,)
+            ),
+        'list-changed-rm': (GObject.SIGNAL_RUN_FIRST, None, (object,)),
+        'list-changed-edit': (
+            GObject.SIGNAL_RUN_FIRST,
+            None,
+            (object,)
+            )
     }
 
     def __init__(self, main_window):
@@ -91,9 +101,9 @@ class BufferClip(GObject.GObject):
 
         self.save_config()
 
-        buff.connect('changed', self.on_buffer_changed)
+        buff.connect('changed', self.on_buffer_changed_edit)
 
-        self.emit('list-changed')
+        self.emit('list-changed-add', (id(buff), buff,))
 
         return
 
@@ -108,10 +118,11 @@ class BufferClip(GObject.GObject):
         ret = 0
 
         if buff in self.buffers:
+            buff_id = id(buff)
             del self.buffers[self.buffers.index(buff)]
             buff.destroy()
             self.save_config()
-            self.emit('list-changed')
+            self.emit('list-changed-rm', (buff_id,))
 
         return ret
 
@@ -176,6 +187,6 @@ class BufferClip(GObject.GObject):
 
         return
 
-    def on_buffer_changed(self, widg):
-        self.emit('list-changed')
+    def on_buffer_changed_edit(self, widg):
+        self.emit('list-changed-edit', (id(widg), widg,))
         return

@@ -46,7 +46,15 @@ class MainWindow:
 
         self.main_menu = wayround_org.pyeditor.main_menu.MainMenu(self)
         buffer_clip = wayround_org.pyeditor.buffer_clip.BufferClip(self)
-        buffer_clip.connect('list-changed', self.on_buffer_clip_list_changed)
+        buffer_clip.connect(
+            'list-changed-edit', self.on_buffer_clip_list_changed_edit
+            )
+        buffer_clip.connect(
+            'list-changed-rm', self.on_buffer_clip_list_changed_rm
+            )
+        buffer_clip.connect(
+            'list-changed-add', self.on_buffer_clip_list_changed_add
+            )
         self.buffer_clip = buffer_clip
 
         b = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
@@ -66,10 +74,13 @@ class MainWindow:
         buffer_listview.set_model(
             Gtk.ListStore(
                 str,
-                str,
-                str,
-                str,
-                str
+                # corresponding buffer instance id (integer converted to str)
+                # as Python id(object) result is too large for int
+                str,  # project
+                str,  # filebasename
+                str,  # modified?
+                str,  # subdir in project
+                str  # real path
                 )
             )
 
@@ -81,28 +92,28 @@ class MainWindow:
         _c = Gtk.TreeViewColumn()
         _r = Gtk.CellRendererText()
         _c.pack_start(_r, False)
-        _c.add_attribute(_r, 'text', 0)
+        _c.add_attribute(_r, 'text', 1)
         # _c.set_title('Project')
         buffer_listview.append_column(_c)
 
         _c = Gtk.TreeViewColumn()
         _r = Gtk.CellRendererText()
         _c.pack_start(_r, False)
-        _c.add_attribute(_r, 'text', 1)
+        _c.add_attribute(_r, 'text', 2)
         # _c.set_title('Name')
         buffer_listview.append_column(_c)
 
         _c = Gtk.TreeViewColumn()
         _r = Gtk.CellRendererText()
         _c.pack_start(_r, False)
-        _c.add_attribute(_r, 'text', 2)
+        _c.add_attribute(_r, 'text', 3)
         # _c.set_title('Changed')
         buffer_listview.append_column(_c)
 
         _c = Gtk.TreeViewColumn()
         _r = Gtk.CellRendererText()
         _c.pack_start(_r, False)
-        _c.add_attribute(_r, 'text', 3)
+        _c.add_attribute(_r, 'text', 4)
         # _c.set_title('Display Path')
         buffer_listview.append_column(_c)
 
@@ -110,7 +121,7 @@ class MainWindow:
         _c.set_visible(False)
         _r = Gtk.CellRendererText()
         _c.pack_start(_r, False)
-        _c.add_attribute(_r, 'text', 4)
+        _c.add_attribute(_r, 'text', 5)
         # _c.set_title('RealPath')
         buffer_listview.append_column(_c)
 
@@ -459,54 +470,98 @@ class MainWindow:
         self.buffer_clip.save_config()
         return Gtk.main_quit()
 
-    def on_buffer_clip_list_changed(self, widget):
+    def on_buffer_clip_list_changed_add(self, widget, tup):
+
+        id_, buff = tup
+        m = self.buffer_listview.get_model()
+
+        proj_dict = self.projects.get_dict()
+
+        b_filename = wayround_org.utils.path.realpath(buff.get_filename())
+
+        proj_name = ''
+
+        for j, k in proj_dict.items():
+            k_plus_slash = wayround_org.utils.path.realpath(k) + '/'
+            if b_filename.startswith(k_plus_slash):
+                proj_name = j
+                break
+
+        disp_file_path = b_filename
+
+        if proj_name != '':
+            disp_file_path = os.path.dirname(
+                wayround_org.utils.path.relpath(
+                    b_filename,
+                    wayround_org.utils.path.realpath(proj_dict[proj_name])
+                    )
+                )
+
+        m.append(
+            [
+                str(id_),
+                proj_name,
+                buff.get_title(),
+                str(buff.get_modified()),
+                disp_file_path,
+                b_filename
+                ]
+            )
+        return
+
+    def on_buffer_clip_list_changed_edit(self, widget, tup):
+        id_, buff = tup
+        m = self.buffer_listview.get_model()
+
+        b_filename = wayround_org.utils.path.realpath(buff.get_filename())
+
+        proj_dict = self.projects.get_dict()
+
+        proj_name = ''
+
+        for j, k in proj_dict.items():
+            k_plus_slash = wayround_org.utils.path.realpath(k) + '/'
+            if b_filename.startswith(k_plus_slash):
+                proj_name = j
+                break
+
+        chi = m.get_iter_first()
+        if chi:
+            while True:
+
+                if int(m[chi][0]) == id_:
+                    m.set_value(chi, 1, proj_name)
+                    m.set_value(chi, 2, buff.get_title())
+                    m.set_value(chi, 3, str(buff.get_modified()))
+
+                chi = m.iter_next(chi)
+
+                if chi in (False, None):
+                    break
+
+        return
+
+    def on_buffer_clip_list_changed_rm(self, widget, tup):
+        id_ = tup[0]
         m = self.buffer_listview.get_model()
 
         chi = m.get_iter_first()
         res = True
 
-        while chi is not None and res is not False:
-            res = m.remove(chi)
+        if chi:
+            while True:
 
-        proj_dict = self.projects.get_dict()
-
-        for i in self.buffer_clip.buffers:
-
-            b_filename = wayround_org.utils.path.realpath(i.get_filename())
-
-            proj_name = ''
-
-            for j, k in proj_dict.items():
-                k_plus_slash = wayround_org.utils.path.realpath(k) + '/'
-                # print("k_plus_slash == {}".format(k_plus_slash))
-                # print(" ? {}".format(b_filename))
-                if b_filename.startswith(k_plus_slash):
-                    proj_name = j
-                    # print("    proj_name == {}".format(proj_name))
+                if int(m[chi][0]) == id_:
+                    m.remove(chi)
                     break
 
-            disp_file_path = b_filename
+                chi = m.iter_next(chi)
 
-            if proj_name != '':
-                disp_file_path = os.path.dirname(
-                    wayround_org.utils.path.relpath(
-                        b_filename,
-                        wayround_org.utils.path.realpath(proj_dict[proj_name])
-                        )
-                    )
+                if chi in (False, None):
+                    break
 
-            m.append(
-                [
-                    proj_name,
-                    i.get_title(),
-                    str(i.get_modified()),
-                    disp_file_path,
-                    b_filename
-                    ]
-                )
-
-        self.select_current_buffer_in_list()
-
+        # while chi is not None and res is not False:
+        #    res = m.remove(chi)
         return
 
     def on_projects_list_changed(self, widget):
