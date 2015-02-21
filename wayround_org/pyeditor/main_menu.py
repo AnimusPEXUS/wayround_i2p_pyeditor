@@ -140,8 +140,8 @@ class MainMenu:
             self.on_navigate_prev_buff_mi
             )
 
-        navigate_me.append(navigate_next_buff_mi)
         navigate_me.append(navigate_prev_buff_mi)
+        navigate_me.append(navigate_next_buff_mi)
 
         self._main = mb
 
@@ -253,36 +253,30 @@ class MainMenu:
 
     def on_navigate_next_buff_mi(self, mi):
 
-        buff = self.main_window.current_buffer
+        self.main_window.select_current_buffer_in_list()
 
-        if buff is None or buff in self.main_window.buffer_clip.buffers:
+        sel = self.main_window.buffer_listview.get_selection()
 
-            new_index = -1
+        model, sel_rows = sel.get_selected_rows()
 
-            if buff is None:
-                new_index = 0
+        if len(sel_rows) == 1:
+            sel_row = sel_rows[0]
 
+            sel_row_id = sel_row[0]
+
+            if sel_row_id == model.iter_n_children() - 1:
+                buf_id = int(model[Gtk.TreePath([0])][0])
             else:
+                buf_id = int(model[Gtk.TreePath([sel_row_id + 1])][0])
 
-                buffs_count = len(self.main_window.buffer_clip.buffers)
+            buf = None
+            for i in self.main_window.buffer_clip.buffers:
+                if id(i) == buf_id:
+                    buf = i
+                    break
 
-                index = self.main_window.buffer_clip.buffers.index(buff)
-
-                if index != -1:
-
-                    if index == buffs_count - 1:
-                        new_index = 0
-                    else:
-                        new_index = index + 1
-
-                else:
-                    if buffs_count != 0:
-                        new_index = 0
-
-            if new_index != -1:
-                self.main_window.set_buffer(
-                    self.main_window.buffer_clip.buffers[new_index]
-                    )
+            if buf is not None:
+                self.main_window.set_buffer(buf)
 
         if self.main_window.source_view is not None:
             self.main_window.source_view.grab_focus()
@@ -291,35 +285,32 @@ class MainMenu:
 
     def on_navigate_prev_buff_mi(self, mi):
 
-        buff = self.main_window.current_buffer
+        self.main_window.select_current_buffer_in_list()
 
-        if buff is None or buff in self.main_window.buffer_clip.buffers:
+        sel = self.main_window.buffer_listview.get_selection()
 
-            new_index = -1
+        model, sel_rows = sel.get_selected_rows()
 
-            if buff is None:
-                new_index = 0
+        if len(sel_rows) == 1:
+            sel_row = sel_rows[0]
 
-            else:
+            sel_row_id = sel_row[0]
 
-                buffs_count = len(self.main_window.buffer_clip.buffers)
-
-                index = self.main_window.buffer_clip.buffers.index(buff)
-
-                if index != -1:
-
-                    if index == 0:
-                        new_index = buffs_count - 1
-                    else:
-                        new_index = index - 1
-                else:
-                    if buffs_count != 0:
-                        new_index = buffs_count - 1
-
-            if new_index != -1:
-                self.main_window.set_buffer(
-                    self.main_window.buffer_clip.buffers[new_index]
+            if sel_row_id == 0:
+                buf_id = int(
+                    model[Gtk.TreePath([model.iter_n_children() - 1])][0]
                     )
+            else:
+                buf_id = int(model[Gtk.TreePath([sel_row_id - 1])][0])
+
+            buf = None
+            for i in self.main_window.buffer_clip.buffers:
+                if id(i) == buf_id:
+                    buf = i
+                    break
+
+            if buf is not None:
+                self.main_window.set_buffer(buf)
 
         if self.main_window.source_view is not None:
             self.main_window.source_view.grab_focus()

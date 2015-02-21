@@ -69,7 +69,7 @@ class MainWindow:
         buffer_listview_sw = Gtk.ScrolledWindow()
         buffer_listview_sw.add(buffer_listview)
         buffer_listview.set_activate_on_single_click(True)
-        buffer_listview.set_headers_visible(False)
+        # buffer_listview.set_headers_visible(False)
         self.buffer_listview = buffer_listview
         buffer_listview.set_model(
             Gtk.ListStore(
@@ -83,6 +83,10 @@ class MainWindow:
                 str  # real path
                 )
             )
+        m = buffer_listview.get_model()
+        m.set_sort_func(1, buffer_list_sorter1, None)
+        m.set_sort_func(2, buffer_list_sorter2, None)
+        del(m)
 
         buffer_listview.connect(
             'row-activated',
@@ -93,28 +97,32 @@ class MainWindow:
         _r = Gtk.CellRendererText()
         _c.pack_start(_r, False)
         _c.add_attribute(_r, 'text', 1)
-        # _c.set_title('Project')
+        _c.set_title('Project')
+        _c.set_sort_column_id(1)
         buffer_listview.append_column(_c)
 
         _c = Gtk.TreeViewColumn()
         _r = Gtk.CellRendererText()
         _c.pack_start(_r, False)
         _c.add_attribute(_r, 'text', 2)
-        # _c.set_title('Name')
+        _c.set_title('Name')
+        _c.set_sort_column_id(1)
         buffer_listview.append_column(_c)
 
         _c = Gtk.TreeViewColumn()
         _r = Gtk.CellRendererText()
         _c.pack_start(_r, False)
         _c.add_attribute(_r, 'text', 3)
-        # _c.set_title('Changed')
+        _c.set_title('Changed')
+        _c.set_sort_column_id(2)
         buffer_listview.append_column(_c)
 
         _c = Gtk.TreeViewColumn()
         _r = Gtk.CellRendererText()
         _c.pack_start(_r, False)
         _c.add_attribute(_r, 'text', 4)
-        # _c.set_title('Display Path')
+        _c.set_title('Display Path')
+        _c.set_sort_column_id(1)
         buffer_listview.append_column(_c)
 
         _c = Gtk.TreeViewColumn()
@@ -122,12 +130,12 @@ class MainWindow:
         _r = Gtk.CellRendererText()
         _c.pack_start(_r, False)
         _c.add_attribute(_r, 'text', 5)
-        # _c.set_title('RealPath')
+        _c.set_title('RealPath')
         buffer_listview.append_column(_c)
 
         projects_listview = Gtk.TreeView()
         self.projects_listview = projects_listview
-        projects_listview.set_headers_visible(False)
+        # projects_listview.set_headers_visible(False)
         projects_listview.set_model(Gtk.ListStore(str))
         projects_listview.connect(
             'row-activated',
@@ -138,7 +146,7 @@ class MainWindow:
         _r = Gtk.CellRendererText()
         _c.pack_start(_r, False)
         _c.add_attribute(_r, 'text', 0)
-        # _c.set_title('Name')
+        _c.set_title('Name')
         projects_listview.append_column(_c)
 
         project_treeview = wayround_org.utils.gtk.DirectoryTreeView()
@@ -430,14 +438,30 @@ class MainWindow:
     def select_current_buffer_in_list(self):
 
         opened_index = -1
-        for i in range(len(self.buffer_clip.buffers)):
-            if self.buffer_clip.buffers[i] == self.current_buffer:
-                opened_index = i
 
-        if opened_index != -1:
-            self.buffer_listview.get_selection().select_path(
-                Gtk.TreePath([opened_index])
-                )
+        buf_id = id(self.current_buffer)
+
+        mod = self.buffer_listview.get_model()
+
+        iter_ = None
+
+        chi = mod.get_iter_first()
+
+        if chi:
+            while True:
+
+                if int(mod[chi][0]) == buf_id:
+                    iter_ = chi
+                    break
+
+                chi = mod.iter_next(chi)
+
+                if not chi:
+                    break
+
+        if iter_ is not None:
+            self.buffer_listview.get_selection().select_iter(iter_)
+
         return
 
     def on_delete(self, widget, event):
@@ -581,10 +605,22 @@ class MainWindow:
         return
 
     def on_buffer_listview_row_activated(self, widget, path, column):
-        ind = path.get_indices()
-        self.set_buffer(self.buffer_clip.buffers[ind[0]])
-        if self.source_view is not None:
-            self.source_view.grab_focus()
+
+        sel = widget.get_selection()
+        model, iter_ = sel.get_selected()
+
+        buf_id = int(model[iter_][0])
+
+        buf = None
+        for i in self.buffer_clip.buffers:
+            if id(i) == buf_id:
+                buf = i
+
+        if buf is not None:
+            self.set_buffer(buf)
+
+            if self.source_view is not None:
+                self.source_view.grab_focus()
         return
 
     def on_projects_listview_row_activated(self, widget, path, column):
@@ -706,5 +742,48 @@ def create_module_map():
 
     return ret
 
+
+def buffer_list_sorter1(model, row1, row2, user_data):
+    val11 = model[row1][1]
+    val12 = model[row2][1]
+    # print('val11: {}'.format(val11))
+    # print('val12: {}'.format(val12))
+    if val11 < val12:
+        ret = -1
+    elif val11 > val12:
+        ret = 1
+    else:
+        val41 = model[row1][4]
+        val42 = model[row2][4]
+        # print('val21: {}'.format(val21))
+        # print('val22: {}'.format(val22))
+        if val41 < val42:
+            ret = -1
+        elif val41 > val42:
+            ret = 1
+        else:
+            val21 = model[row1][2]
+            val22 = model[row2][2]
+            # print('val21: {}'.format(val21))
+            # print('val22: {}'.format(val22))
+            if val21 < val22:
+                ret = -1
+            elif val21 > val22:
+                ret = 1
+            else:
+                ret = 0
+    return ret
+
+
+def buffer_list_sorter2(model, row1, row2, user_data):
+    val31 = model[row1][3] == 'True'
+    val32 = model[row2][3] == 'True'
+    if val31 and not val32:
+        ret = 1
+    elif not val31 and val32:
+        ret = -1
+    else:
+        ret = 0
+    return ret
 
 MODES, MODES_MIME_MAP, MODES_FNM_MAP = create_module_map()
