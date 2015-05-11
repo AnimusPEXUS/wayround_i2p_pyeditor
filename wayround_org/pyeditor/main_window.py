@@ -42,6 +42,7 @@ class MainWindow:
         window = Gtk.Window()
         window.set_title("PyEditor")
         window.add_accel_group(self.accel_group)
+        # window.set_hide_titlebar_when_maximized(True)
         window.connect('delete-event', self.on_delete)
 
         self.main_menu = wayround_org.pyeditor.main_menu.MainMenu(self)
@@ -253,6 +254,7 @@ class MainWindow:
 
     def show(self):
         self.get_widget().show_all()
+        return
 
     def destroy(self):
         self.main_menu.destroy()

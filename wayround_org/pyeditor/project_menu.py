@@ -63,8 +63,12 @@ class ProjectMenu:
     def on_open_file_manager_mi(self, mi):
         path = self.main_window.project_treeview.get_selected_path()
 
-        uri = GLib.uri_escape_string(path, None, True)
-        Gtk.show_uri(None, uri, Gdk.CURRENT_TIME)
+        path = 'file://' + path
+
+        #path = GLib.uri_escape_string(path, None, True)
+
+        print("path: {}".format(path))
+        Gtk.show_uri(None, path, Gdk.CURRENT_TIME)
         return
 
     def on_create_directory_mi(self, mi):

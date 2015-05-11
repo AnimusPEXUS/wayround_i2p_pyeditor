@@ -29,13 +29,13 @@ class Config:
             self.cfg.read(self._cfg_file)
         else:
             self.cfg.read_dict(
-                collections.OrderedDict((
+                collections.OrderedDict([
                     ('general',
-                     collections.OrderedDict((
+                     collections.OrderedDict([
                          ('projects', '[]')
-                         ))
+                         ])
                      ),
-                    ))
+                    ])
                 )
 
         return

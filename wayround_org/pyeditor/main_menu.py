@@ -167,7 +167,7 @@ class MainMenu:
         d = Gtk.FileChooserDialog(
             "Select File to Open (non-existing file can be selected)",
             self.main_window._window,
-            Gtk.FileChooserAction.OPEN,
+            Gtk.FileChooserAction.SAVE,
             [
                 'Ok', Gtk.ResponseType.OK,
                 'Cancel', Gtk.ResponseType.CANCEL

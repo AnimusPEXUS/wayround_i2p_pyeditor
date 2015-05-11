@@ -17,6 +17,7 @@ class AddProjectDialog:
         window.set_transient_for(main_window.get_widget())
         window.set_position(Gtk.WindowPosition.CENTER_ON_PARENT)
         window.set_type_hint(Gdk.WindowTypeHint.DIALOG)
+        window.set_default_size(500, 300)
         self._window = window
 
         b = Gtk.Box.new(Gtk.Orientation.VERTICAL, 5)

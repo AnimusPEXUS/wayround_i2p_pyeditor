@@ -258,6 +258,7 @@ class View:
 
         outline_treeview_sw = Gtk.ScrolledWindow()
         self.outline_sw = outline_treeview_sw
+        outline_treeview_sw.set_overlay_scrolling (False)
         outline_treeview_sw.add(outline_treeview)
 
         font_desc = Pango.FontDescription.from_string("Clean 9")
@@ -271,6 +272,7 @@ class View:
         sw = Gtk.ScrolledWindow()
         self._sw = sw
         sw.add(self.view)
+        sw.set_overlay_scrolling (False)
 
         self._status_label = Gtk.Label()
         self._status_label.set_alignment(0, 0.5)
