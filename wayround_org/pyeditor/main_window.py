@@ -354,7 +354,31 @@ class MainWindow:
         return ret
 
     def close_buffer(self, buff):
+
+        ret = 0
+
         if buff in self.buffer_clip.buffers:
+
+            if hasattr(buff, 'get_modified') and buff.get_modified() == True:
+                d = Gtk.MessageDialog(
+                    self.get_widget(),
+                    Gtk.DialogFlags.MODAL,
+                    Gtk.MessageType.QUESTION,
+                    Gtk.ButtonsType.YES_NO,
+                    "Buffer with Text for `{}' is not saved\n"
+                    "Close this Buffer Anyway?".format(buff.get_title())
+                    )
+                res = d.run()
+                d.destroy()
+                if res == Gtk.ResponseType.YES:
+                    ret = 0
+                else:
+                    ret = 1
+
+        else:
+            ret = 2
+
+        if ret == 0:
 
             if buff == self.current_buffer:
                 self.set_buffer(None)
@@ -491,33 +515,59 @@ class MainWindow:
 
     def on_delete(self, widget, event):
 
-        self.install_mode('dummy')
+        found_not_saved = False
+        close_anyway = False
+        ret = True
 
-        self.cfg.cfg.set(
-            'general',
-            'maximized',
-            str(self._window.is_maximized())
-            )
-        ws = self._window.get_size()
-        self.cfg.cfg.set('general', 'width', str(ws[0]))
-        self.cfg.cfg.set('general', 'height', str(ws[1]))
+        for buff in self.buffer_clip.buffers:
 
-        self.cfg.cfg.set(
-            'general',
-            'paned1_pos',
-            str(self.paned_v.get_position())
-            )
+            if hasattr(buff, 'get_modified') and buff.get_modified() == True:
+                found_not_saved = True
 
-        self.cfg.cfg.set(
-            'general',
-            'paned2_pos',
-            str(self.paned_h1.get_position())
-            )
+        if found_not_saved:
+            d = Gtk.MessageDialog(
+                self.get_widget(),
+                Gtk.DialogFlags.MODAL,
+                Gtk.MessageType.QUESTION,
+                Gtk.ButtonsType.YES_NO,
+                "Not Saved Buffers found.\n"
+                "Continue closing PyEditor?"
+                )
+            res = d.run()
+            d.destroy()
+            close_anyway = res == Gtk.ResponseType.YES
 
-        self.destroy()
+        if not found_not_saved or (found_not_saved and close_anyway):
 
-        self.buffer_clip.save_config()
-        return Gtk.main_quit()
+            self.install_mode('dummy')
+
+            self.cfg.cfg.set(
+                'general',
+                'maximized',
+                str(self._window.is_maximized())
+                )
+            ws = self._window.get_size()
+            self.cfg.cfg.set('general', 'width', str(ws[0]))
+            self.cfg.cfg.set('general', 'height', str(ws[1]))
+
+            self.cfg.cfg.set(
+                'general',
+                'paned1_pos',
+                str(self.paned_v.get_position())
+                )
+
+            self.cfg.cfg.set(
+                'general',
+                'paned2_pos',
+                str(self.paned_h1.get_position())
+                )
+
+            self.destroy()
+
+            self.buffer_clip.save_config()
+            Gtk.main_quit()
+            ret = False
+        return ret
 
     def on_buffer_clip_list_changed_add(self, widget, tup):
 

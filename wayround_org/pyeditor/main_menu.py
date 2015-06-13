@@ -256,7 +256,6 @@ class MainMenu:
                 res = d.run()
                 d.destroy()
                 if res == Gtk.ResponseType.YES:
-
                     self.main_window.projects.rm(name)
 
         return
