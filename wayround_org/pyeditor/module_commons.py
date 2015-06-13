@@ -230,7 +230,9 @@ class View:
         paned_h2 = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
         self.paned_h2 = paned_h2
 
-        font_desc = Pango.FontDescription.from_string("Clean 9")
+        font_desc = Pango.FontDescription.from_string(
+            self.main_window.get_fixed_text_editor_font_desc()
+            )
         outline_treeview = Gtk.TreeView()
         outline_treeview.set_activate_on_single_click(True)
         outline_treeview.connect(
@@ -258,10 +260,8 @@ class View:
 
         outline_treeview_sw = Gtk.ScrolledWindow()
         self.outline_sw = outline_treeview_sw
-        outline_treeview_sw.set_overlay_scrolling (False)
+        outline_treeview_sw.set_overlay_scrolling(False)
         outline_treeview_sw.add(outline_treeview)
-
-        font_desc = Pango.FontDescription.from_string("Clean 9")
 
         self.view = GtkSource.View()
 
@@ -272,7 +272,7 @@ class View:
         sw = Gtk.ScrolledWindow()
         self._sw = sw
         sw.add(self.view)
-        sw.set_overlay_scrolling (False)
+        sw.set_overlay_scrolling(False)
 
         self._status_label = Gtk.Label()
         self._status_label.set_alignment(0, 0.5)

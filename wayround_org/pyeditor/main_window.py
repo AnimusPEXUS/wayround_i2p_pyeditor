@@ -68,6 +68,7 @@ class MainWindow:
 
         buffer_listview = Gtk.TreeView()
         buffer_listview_sw = Gtk.ScrolledWindow()
+        buffer_listview_sw.set_overlay_scrolling(False)
         buffer_listview_sw.add(buffer_listview)
         buffer_listview.set_activate_on_single_click(True)
         # buffer_listview.set_headers_visible(False)
@@ -167,6 +168,7 @@ class MainWindow:
         self.projects_notebook = projects_notebook
 
         projects_listview_sw = Gtk.ScrolledWindow()
+        projects_listview_sw.set_overlay_scrolling(False)
         projects_listview_sw.add(projects_listview)
 
         projects_notebook.append_page(
@@ -175,6 +177,7 @@ class MainWindow:
             )
 
         project_treeview_sw = Gtk.ScrolledWindow()
+        project_treeview_sw.set_overlay_scrolling(False)
         project_treeview_sw.add(project_treeview)
 
         self.project_label = Gtk.Label("Project")
@@ -464,6 +467,26 @@ class MainWindow:
         if iter_ is not None:
             self.buffer_listview.get_selection().select_iter(iter_)
 
+        return
+
+    def signal_settings_changed(self):
+        if hasattr(
+                self.mode_interface, 'settings_changed'
+                ):
+            self.mode_interface.settings_changed()
+        return
+
+    def get_fixed_text_editor_font_desc(self):
+        try:
+            ret = self.cfg.cfg.get('general', 'fixed_text_editor_font_desc')
+        except:
+            ret = "Clean 9"
+        return ret
+
+    def set_fixed_text_editor_font_desc(self, desc):
+        self.cfg.cfg.set('general', 'fixed_text_editor_font_desc', desc)
+        self.cfg.save()
+        self.signal_settings_changed()
         return
 
     def on_delete(self, widget, event):

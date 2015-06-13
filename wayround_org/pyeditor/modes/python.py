@@ -229,11 +229,11 @@ class SourceMenu:
                 t = autopep8.fix_code(
                     t,
                     options=autopep8.parse_args(
-                        ['--aggressive', 
-                         '--ignore', 'E123,E721', 
-                         #'--ignore', '', 
+                        ['--aggressive',
+                         '--ignore', 'E123,E721',
+                         #'--ignore', '',
                          ''
-                        ]
+                         ]
                         )
                     )
 
@@ -389,6 +389,14 @@ class ModeInterface:
     def destroy(self):
         self.source_menu.destroy()
         self.view.destroy()
+        return
+
+    def settings_changed(self):
+        font_desc = Pango.FontDescription.from_string(
+            self.main_window.get_fixed_text_editor_font_desc()
+            )
+        self.outline.outline.override_font(font_desc)
+        self.view.get_view_widget().override_font(font_desc)
         return
 
     def get_menu(self):

@@ -1,7 +1,7 @@
 
 import os.path
 
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, Pango
 
 import wayround_org.pyeditor.add_project_dialog
 import wayround_org.pyeditor.buffer
@@ -19,6 +19,15 @@ class MainMenu:
 
         mb = Gtk.MenuBar()
 
+        tools_me = Gtk.Menu()
+
+        tools_mi = Gtk.MenuItem.new_with_label("Tools")
+        tools_mi.set_submenu(tools_me)
+
+        change_font_mi = Gtk.MenuItem.new_with_label("Change Font..")
+        tools_me.append(change_font_mi)
+        change_font_mi.connect('activate', self.on_change_font_mi)
+
         file_mi = Gtk.MenuItem.new_with_label("File")
         project_mi = Gtk.MenuItem.new_with_label("Project")
         source_mi = Gtk.MenuItem.new_with_label("Source")
@@ -26,6 +35,7 @@ class MainMenu:
         navigate_mi = Gtk.MenuItem.new_with_label("Navigate")
 
         mb.append(file_mi)
+        mb.append(tools_mi)
         mb.append(project_mi)
         mb.append(source_mi)
         mb.append(navigate_mi)
@@ -315,4 +325,21 @@ class MainMenu:
         if self.main_window.source_view is not None:
             self.main_window.source_view.grab_focus()
 
+        return
+
+    def on_change_font_mi(self, mi):
+        desc = Pango.FontDescription.from_string(
+            self.main_window.get_fixed_text_editor_font_desc()
+            )
+        d = Gtk.FontChooserDialog(
+            "Select Fixed Font", 
+            self.main_window.get_widget()
+            )
+        d.set_font_desc(desc)
+        res = d.run()
+        if res == Gtk.ResponseType.OK:
+            self.main_window.set_fixed_text_editor_font_desc(
+                d.get_font_desc().to_string()
+                )
+        d.destroy()
         return
