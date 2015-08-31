@@ -215,8 +215,12 @@ class MainWindow:
         # projects_notebook_f = Gtk.Frame()
         # projects_notebook_f.add(projects_notebook)
 
+        projects_notebook_sw = Gtk.ScrolledWindow()
+        projects_notebook_sw.set_overlay_scrolling(False)
+        projects_notebook_sw.add(projects_notebook)
+
         paned_v.add1(buffer_listview_sw)
-        paned_v.add2(projects_notebook)
+        paned_v.add2(projects_notebook_sw)
 
         paned_h1.add1(paned_v)
 
