@@ -70,7 +70,8 @@ class Buffer(
             with open(filename, 'r') as f:
                 t = f.read()
 
-        self._b = GtkSource.Buffer()
+        if self._b is None:
+            self._b = GtkSource.Buffer()
         self._b.set_text(t)
         self._b.set_modified(False)
         self._b.connect(
@@ -83,6 +84,9 @@ class Buffer(
         self.emit('changed')
 
         return
+
+    def reopen(self):
+        return self.open(self.filename)
 
     def save(self, filename=None):
 
@@ -365,17 +369,14 @@ class View:
         itera = b.get_iter_at_mark(b.get_insert())
 
         self._status_label.set_text(
-            "line index: {}, "
-            "column index: {}, "
-            "line: {}, "
-            "column: {}, "
-            "offset: {}, "
-            "offset (hex): {:x}".format(
+            """\
+line index: {} | column index: {} | offset (hex): {:x}
+line: {} | column: {} | offset: {}""".format(
                 itera.get_line(),
                 itera.get_line_offset(),
+                itera.get_offset(),
                 itera.get_line() + 1,
                 itera.get_line_offset() + 1,
-                itera.get_offset(),
                 itera.get_offset()
                 )
             )
