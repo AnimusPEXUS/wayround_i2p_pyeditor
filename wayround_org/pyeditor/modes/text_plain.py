@@ -20,21 +20,11 @@ import wayround_org.pyeditor.buffer
 import wayround_org.pyeditor.module_commons
 
 
-MODE_NAME = 'python'
+MODE_NAME = 'text_plain'
 
-SUPPORTED_MIME = ['text/x-python']
+SUPPORTED_MIME = ['text/plain']
 
-SUPPORTED_FNM = ['*.py']
-
-SYMBOL_REGEXP = re.compile(
-    r'^[ \t]*(def |class )(.|\n)*?\s*:[ \t]*$',
-    flags=re.M
-    )
-
-SYMBOL2_REGEXP = re.compile(
-    r'^([ \t]*[a-zA-Z_][a-zA-Z0-9_\.]*?)[ \t]*\=.*$',
-    flags=re.M
-    )
+SUPPORTED_FNM = ['*.txt', '*']
 
 
 class Buffer(wayround_org.pyeditor.module_commons.Buffer):
@@ -78,12 +68,6 @@ class SourceMenu:
 
         source_me = Gtk.Menu()
 
-        # source_toggle_comment_mi = Gtk.MenuItem.new_with_label(
-        #     "Toggle Comment"
-        #     )
-        # source_comment_mi = Gtk.MenuItem.new_with_label("Comment")
-        # source_uncomment_mi = Gtk.MenuItem.new_with_label("Uncomment")
-
         source_indent_mi = Gtk.MenuItem.new_with_label("Indent")
         source_indent_mi.add_accelerator(
             'activate',
@@ -111,20 +95,6 @@ class SourceMenu:
             'activate',
             self.on_indent_mi,
             True
-            )
-
-        source_autopep8_mi = Gtk.MenuItem.new_with_label("Use autopep8.py")
-        source_autopep8_mi.add_accelerator(
-            'activate',
-            main_window.accel_group,
-            Gdk.KEY_F,
-            Gdk.ModifierType.CONTROL_MASK
-            | Gdk.ModifierType.SHIFT_MASK,
-            Gtk.AccelFlags.VISIBLE
-            )
-        source_autopep8_mi.connect(
-            'activate',
-            self.on_source_autopep8_mi
             )
 
         edit_delete_line_mi = Gtk.MenuItem.new_with_label("Delete Line")
@@ -172,11 +142,6 @@ class SourceMenu:
             self.on_navigate_refresh_outline_mi
             )
 
-        # source_me.append(source_toggle_comment_mi)
-        # source_me.append(source_comment_mi)
-        # source_me.append(source_uncomment_mi)
-        # source_me.append(Gtk.SeparatorMenuItem())
-
         source_me.append(edit_delete_line_mi)
         source_me.append(Gtk.SeparatorMenuItem())
 
@@ -184,7 +149,6 @@ class SourceMenu:
         source_me.append(source_dedent_mi)
         source_me.append(Gtk.SeparatorMenuItem())
 
-        source_me.append(source_autopep8_mi)
         source_me.append(edit_delete_trailing_whitespace_mi)
         source_me.append(Gtk.SeparatorMenuItem())
 
@@ -199,45 +163,6 @@ class SourceMenu:
 
     def destroy(self):
         self.get_widget().destroy()
-        return
-
-    def on_source_autopep8_mi(self, mi):
-
-        try:
-            import autopep8
-        except:
-            logging.exception("Can't use autopep8")
-        else:
-
-            buff = self.main_window.current_buffer
-
-            if buff is not None:
-
-                b = buff.get_buffer()
-
-                t = b.get_text(
-                    b.get_start_iter(),
-                    b.get_end_iter(),
-                    False
-                    )
-
-                buff.save_state()
-
-                t = autopep8.fix_code(
-                    t,
-                    options=autopep8.parse_args(
-                        ['--aggressive',
-                         '--ignore', 'E123,E721',
-                         #'--ignore', '',
-                         ''
-                         ]
-                        )
-                    )
-
-                b.set_text(t)
-
-                buff.restore_state()
-
         return
 
     def on_edit_delete_line_mi(self, mi):
@@ -285,6 +210,7 @@ class Outline(wayround_org.pyeditor.module_commons.Outline):
     def search(self, buff):
         res = {}
 
+        '''
         t = buff.get_text(
             buff.get_start_iter(),
             buff.get_end_iter(),
@@ -300,80 +226,16 @@ class Outline(wayround_org.pyeditor.module_commons.Outline):
             t2 = buff.get_text(s, e, False)
 
             res[line] = t2
-
-        for i in SYMBOL2_REGEXP.finditer(t):
-
-            line = buff.get_iter_at_offset(i.start()).get_line()
-            s = buff.get_iter_at_line(line)
-            e = buff.get_iter_at_offset(i.end())
-
-            t2 = buff.get_text(s, e, False)
-
-            res[line] = t2
+        '''
 
         return res
-
-
-class SourceCompletionProvider(
-        GObject.GObject,
-        GtkSource.CompletionProvider
-        ):
-
-    def __init__(self):
-        super().__init__()
-        print("__init__")
-        return
-
-    def do_get_name(self):
-        print("get_name")
-        return "Python Completion Provider"
-
-    def do_get_icon(self):
-        print("get_icon")
-        return None
-
-    def do_populate(self, context):
-        print("populate")
-        p1 = GtkSource.CompletionItem.new('label1', '111', None, None)
-        p2 = GtkSource.CompletionItem.new('label2', '222', None, None)
-        p3 = GtkSource.CompletionItem.new('label3', '333', None, None)
-        context.add_proposals(self, [p1, p2, p3], True)
-        return
-
-    def do_get_activation(self):
-        print("activation")
-        return GtkSource.CompletionActivation.USER_REQUESTED
-
-    def do_match(self, context):
-        print("match")
-        # itera = context.get_iter()
-        return True
-
-    # def do_get_info_widget(self, proposal):
-    #    return
-
-    def do_update_info(self, proposal, info):
-        print("update_info: {}, {}".format(proposal, info))
-        return
-
-    # def do_get_start_iter(self, context, proposal, itera):
-    #    return
-
-    # def do_activate_proposal(self, proposal, iter):
-    #    return
-
-    def do_get_interactive_delay(self):
-        return -1
-
-    # def do_get_priority(self):
-    #     return 0
 
 
 class ModeInterface:
 
     @staticmethod
     def get_menu_name():
-        return "Python"
+        return "Text-Plain"
 
     def __init__(self, main_window):
         self.main_window = main_window
@@ -427,7 +289,7 @@ class ModeInterface:
                 )
 
         buff.set_mode_interface(self)
-        buff.set_language(self.lang_mgr.get_language('python'))
+        buff.set_language(self.lang_mgr.get_language('default'))
         self.view.set_buffer(buff)
         self.outline.reload()
         return

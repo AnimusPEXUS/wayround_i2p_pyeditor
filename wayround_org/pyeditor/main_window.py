@@ -5,6 +5,7 @@ import importlib
 import importlib.util
 import modulefinder
 import fnmatch
+import collections
 
 import mimetypes
 
@@ -285,6 +286,7 @@ class MainWindow:
         ret = 0
 
         filename = wayround_org.utils.path.realpath(filename)
+        # print("filename: {}".format(filename))
 
         mode = MODES['dummy']
 
@@ -305,6 +307,9 @@ class MainWindow:
                     # TODO: create mode selection dialog
                     pass
 
+            # print("mode by mime: {}".format(mode))
+
+            # if mode not found by mume type, try find it by filemask
             if mode == MODES['dummy']:
                 acceptable_mode_mods = []
                 for i in MODES_FNM_MAP.keys():
@@ -317,9 +322,12 @@ class MainWindow:
                             mode = MODES_FNM_MAP[i][
                                 list(MODES_FNM_MAP[i].keys())[0]
                                 ]
+                            break
                         else:
                             # TODO: create mode selection dialog
                             pass
+
+            # print("mode by fm: {}".format(mode))
 
         else:
             try:
@@ -758,16 +766,21 @@ def load_mode(name='dummy'):
 
 def find_modes():
     mf = modulefinder.ModuleFinder()
-    return list(mf.find_all_submodules(wayround_org.pyeditor.modes))
+    ret = list(mf.find_all_submodules(wayround_org.pyeditor.modes))
+    if 'text_plain' in ret:
+        text_plain_pos = ret.index('text_plain')
+        ret = ret[:text_plain_pos] + ret[text_plain_pos + 1:] + ['text_plain']
+    # print("{}".format(ret))
+    return ret
 
 
 def create_module_map():
 
     ret = None, None, None
 
-    mime_map = {}
-    ext_map = {}
-    modules = {}
+    mime_map = collections.OrderedDict()
+    ext_map = collections.OrderedDict()
+    modules = collections.OrderedDict()
 
     modes = find_modes()
 
@@ -866,3 +879,5 @@ def buffer_list_sorter2(model, row1, row2, user_data):
     return ret
 
 MODES, MODES_MIME_MAP, MODES_FNM_MAP = create_module_map()
+
+# print("{}\n\n{}\n\n{}\n\n".format(MODES, MODES_MIME_MAP, MODES_FNM_MAP))
