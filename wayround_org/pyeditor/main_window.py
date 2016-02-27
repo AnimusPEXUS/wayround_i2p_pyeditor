@@ -116,7 +116,7 @@ class MainWindow:
         _r = Gtk.CellRendererText()
         _c.pack_start(_r, False)
         _c.add_attribute(_r, 'text', 3)
-        _c.set_title('Changed')
+        _c.set_title('Changed?')
         _c.set_sort_column_id(2)
         buffer_listview.append_column(_c)
 
@@ -133,7 +133,7 @@ class MainWindow:
         _r = Gtk.CellRendererText()
         _c.pack_start(_r, False)
         _c.add_attribute(_r, 'text', 5)
-        _c.set_title('RealPath')
+        _c.set_title('Path')
         buffer_listview.append_column(_c)
 
         projects_listview = Gtk.TreeView()
@@ -181,7 +181,7 @@ class MainWindow:
         project_treeview_sw.set_overlay_scrolling(False)
         project_treeview_sw.add(project_treeview)
 
-        self.project_label = Gtk.Label("Project")
+        self.project_label = Gtk.Label("Dbl. click one of projects")
 
         projects_notebook.append_page(
             project_treeview_sw,

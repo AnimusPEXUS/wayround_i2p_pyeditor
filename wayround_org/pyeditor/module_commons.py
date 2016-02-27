@@ -175,13 +175,21 @@ class Buffer(
             self.state['cursor-position'] = cp
 
             if self.main_window.current_buffer == self:
-                sw = self.main_window.source_view_sw
+                sw = self.mode_interface.get_view_widget_sw()
                 if sw is not None:
                     vsb = sw.get_vscrollbar()
                     if vsb is not None:
                         value = vsb.get_value()
                         self.state['v-scroll-pos'] = value
-
+                
+                if hasattr(self.mode_interface.view, 'outline_sw'):
+                    sw = self.mode_interface.view.outline_sw
+                    if sw is not None:
+                        vsb = sw.get_vscrollbar()
+                        if vsb is not None:
+                            value = vsb.get_value()
+                            self.state['outline-v-scroll-pos'] = value
+                    
         return
 
     def restore_state(self):
@@ -210,6 +218,17 @@ class Buffer(
                     if vsb is not None:
                         value = self.state['v-scroll-pos']
                         vsb.set_value(value)
+
+            if 'outline-v-scroll-pos' in self.state:
+                
+                if hasattr(self.mode_interface.view, 'outline_sw'):
+                    sw = self.mode_interface.view.outline_sw
+
+                    if sw is not None:
+                        vsb = sw.get_vscrollbar()
+                        if vsb is not None:
+                            value = self.state['outline-v-scroll-pos']
+                            vsb.set_value(value)
 
         return
 

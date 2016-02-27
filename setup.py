@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
     name='wayround_org_pyeditor',
-    version='0.3',
+    version='0.3.1',
     description='Simple extansible editor with projects and outline',
     author='Alexey V Gorshkov',
     author_email='animus@wayround.org',
