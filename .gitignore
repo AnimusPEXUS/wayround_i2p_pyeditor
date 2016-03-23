@@ -9,3 +9,4 @@
 /MANIFEST
 /dist
 /org_wayround_pyeditor.egg-info
+*.egg-info
