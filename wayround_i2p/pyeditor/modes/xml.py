@@ -12,39 +12,36 @@ from gi.repository import GtkSource
 from gi.repository import Pango
 from gi.repository import GLib
 
-import wayround_org.utils.path
-import wayround_org.utils.timer
-import wayround_org.utils.gtk
+import wayround_i2p.utils.path
+import wayround_i2p.utils.timer
+import wayround_i2p.utils.gtk
 
-import wayround_org.pyeditor.buffer
-import wayround_org.pyeditor.module_commons
-
-
-MODE_NAME = 'cython_pxd'
-
-SUPPORTED_MIME = []
-
-SUPPORTED_FNM = ['*.pxd']
-
-SYMBOL_REGEXP = re.compile(
-    r'^[ \t]*(ctypedef |cdef |def |class |enum)(.|\n)*?\s*:[ \t]*$',
-    flags=re.M
-    )
-
-# SYMBOL2_REGEXP = re.compile(
-#     r'^([ \t]*[a-zA-Z_][a-zA-Z0-9_\.]*?)[ \t]*\=.*$',
-#     flags=re.M
-#     )
+import wayround_i2p.pyeditor.buffer
+import wayround_i2p.pyeditor.module_commons
 
 
-class Buffer(wayround_org.pyeditor.module_commons.Buffer):
+MODE_NAME = 'xml'
+
+SUPPORTED_MIME = [
+    'application/xml',
+    'application/xhtml+xml',
+    'application/xhtml'
+    ]
+
+SUPPORTED_FNM = [
+    '*.xml',
+    '*.xhtml'
+    ]
+
+
+class Buffer(wayround_i2p.pyeditor.module_commons.Buffer):
 
     @staticmethod
     def get_mode_interface():
         return ModeInterface
 
 
-class View(wayround_org.pyeditor.module_commons.View):
+class View(wayround_i2p.pyeditor.module_commons.View):
 
     @staticmethod
     def get_language_name():
@@ -116,6 +113,7 @@ class SourceMenu:
         source_pep8_mi = Gtk.MenuItem.new_with_label("Use pep8.py")
         source_pep8_mi.set_no_show_all(True)
         source_autopep8_mi = Gtk.MenuItem.new_with_label("Use autopep8.py")
+        source_autopep8_mi.set_no_show_all(True)
         source_autopep8_mi.add_accelerator(
             'activate',
             main_window.accel_group,
@@ -142,6 +140,21 @@ class SourceMenu:
             self.on_edit_delete_line_mi
             )
 
+        navigate_refresh_outline_mi = \
+            Gtk.MenuItem.new_with_label("Refresh Outline")
+
+        navigate_refresh_outline_mi.add_accelerator(
+            'activate',
+            main_window.accel_group,
+            Gdk.KEY_R,
+            Gdk.ModifierType.CONTROL_MASK,
+            Gtk.AccelFlags.VISIBLE
+            )
+        navigate_refresh_outline_mi.connect(
+            'activate',
+            self.on_navigate_refresh_outline_mi
+            )
+
         edit_delete_trailing_whitespace_mi = Gtk.MenuItem.new_with_label(
             "Delete Trailing Whitespace"
             )
@@ -157,21 +170,6 @@ class SourceMenu:
         edit_delete_trailing_whitespace_mi.connect(
             'activate',
             self.on_delete_trailing_whitespace_mi
-            )
-
-        navigate_refresh_outline_mi = \
-            Gtk.MenuItem.new_with_label("Refresh Outline")
-
-        navigate_refresh_outline_mi.add_accelerator(
-            'activate',
-            main_window.accel_group,
-            Gdk.KEY_R,
-            Gdk.ModifierType.CONTROL_MASK,
-            Gtk.AccelFlags.VISIBLE
-            )
-        navigate_refresh_outline_mi.connect(
-            'activate',
-            self.on_navigate_refresh_outline_mi
             )
 
         # source_me.append(source_toggle_comment_mi)
@@ -229,11 +227,7 @@ class SourceMenu:
                 t = autopep8.fix_code(
                     t,
                     options=autopep8.parse_args(
-                        ['--aggressive', 
-                         '--ignore', 'E123,E721', 
-                         #'--ignore', '', 
-                         ''
-                        ]
+                        ['--aggressive', '--ignore', 'E123', '']
                         )
                     )
 
@@ -245,7 +239,7 @@ class SourceMenu:
 
     def on_edit_delete_line_mi(self, mi):
         b = self.main_window.current_buffer.get_buffer()
-        wayround_org.pyeditor.module_commons.delete_selected_lines(b)
+        wayround_i2p.pyeditor.module_commons.delete_selected_lines(b)
         return
 
     def on_navigate_refresh_outline_mi(self, mi):
@@ -256,11 +250,11 @@ class SourceMenu:
 
     def _get_selected_lines(self):
         b = self.main_window.current_buffer.get_buffer()
-        return wayround_org.pyeditor.module_commons.get_selected_lines(b)
+        return wayround_i2p.pyeditor.module_commons.get_selected_lines(b)
 
     def on_indent_mi(self, mi, de=False):
         b = self.main_window.current_buffer.get_buffer()
-        wayround_org.pyeditor.module_commons.indent_buffer(b, de, 4)
+        wayround_i2p.pyeditor.module_commons.indent_buffer(b, de, 4)
         return
 
     def on_delete_trailing_whitespace_mi(self, mi):
@@ -275,7 +269,7 @@ class SourceMenu:
 
         buff.save_state()
 
-        t = wayround_org.pyeditor.module_commons.delete_trailing_whitespace(t)
+        t = wayround_i2p.pyeditor.module_commons.delete_trailing_whitespace(t)
 
         b.set_text(t)
 
@@ -283,90 +277,20 @@ class SourceMenu:
         return
 
 
-class Outline(wayround_org.pyeditor.module_commons.Outline):
+class Outline(wayround_i2p.pyeditor.module_commons.Outline):
 
     def search(self, buff):
+
         res = {}
 
-        t = buff.get_text(
-            buff.get_start_iter(),
-            buff.get_end_iter(),
-            False
-            )
-
-        for i in SYMBOL_REGEXP.finditer(t):
-
-            line = buff.get_iter_at_offset(i.start()).get_line()
-            s = buff.get_iter_at_line(line)
-            e = buff.get_iter_at_offset(i.end())
-
-            t2 = buff.get_text(s, e, False)
-
-            res[line] = t2
-
         return res
-
-
-class SourceCompletionProvider(
-        GObject.GObject,
-        GtkSource.CompletionProvider
-        ):
-
-    def __init__(self):
-        super().__init__()
-        print("__init__")
-        return
-
-    def do_get_name(self):
-        print("get_name")
-        return "Python Completion Provider"
-
-    def do_get_icon(self):
-        print("get_icon")
-        return None
-
-    def do_populate(self, context):
-        print("populate")
-        p1 = GtkSource.CompletionItem.new('label1', '111', None, None)
-        p2 = GtkSource.CompletionItem.new('label2', '222', None, None)
-        p3 = GtkSource.CompletionItem.new('label3', '333', None, None)
-        context.add_proposals(self, [p1, p2, p3], True)
-        return
-
-    def do_get_activation(self):
-        print("activation")
-        return GtkSource.CompletionActivation.USER_REQUESTED
-
-    def do_match(self, context):
-        print("match")
-        # itera = context.get_iter()
-        return True
-
-    # def do_get_info_widget(self, proposal):
-    #    return
-
-    def do_update_info(self, proposal, info):
-        print("update_info: {}, {}".format(proposal, info))
-        return
-
-    # def do_get_start_iter(self, context, proposal, itera):
-    #    return
-
-    # def do_activate_proposal(self, proposal, iter):
-    #    return
-
-    def do_get_interactive_delay(self):
-        return -1
-
-    # def do_get_priority(self):
-    #     return 0
 
 
 class ModeInterface:
 
     @staticmethod
     def get_menu_name():
-        return "Cython/pxd"
+        return "XML"
 
     def __init__(self, main_window):
         self.main_window = main_window
@@ -408,11 +332,11 @@ class ModeInterface:
         if not isinstance(buff, Buffer):
             raise Exception(
                 "`buff' must be an instance of "
-                "wayround_org.pyeditor.modes.python.Buffer"
+                "wayround_i2p.pyeditor.modes.python.Buffer"
                 )
 
         buff.set_mode_interface(self)
-        buff.set_language(self.lang_mgr.get_language('python'))
+        buff.set_language(self.lang_mgr.get_language('xml'))
         self.view.set_buffer(buff)
         self.outline.reload()
         return
@@ -422,4 +346,4 @@ class ModeInterface:
 
 
 def indent(txt, de=False):
-    return wayround_org.pyeditor.module_commons.indent_text(txt, de, 4)
+    return wayround_i2p.pyeditor.module_commons.indent_text(txt, de, 4)

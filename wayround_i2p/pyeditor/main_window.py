@@ -14,27 +14,27 @@ from gi.repository import Gdk
 from gi.repository import GtkSource
 from gi.repository import Pango
 
-import wayround_org.utils.gtk
-import wayround_org.utils.path
+import wayround_i2p.utils.gtk
+import wayround_i2p.utils.path
 
-import wayround_org.pyeditor.buffer_clip
-import wayround_org.pyeditor.config
-import wayround_org.pyeditor.main_menu
-import wayround_org.pyeditor.project_clip
-import wayround_org.pyeditor.project_menu
-import wayround_org.pyeditor.modes.dummy
+import wayround_i2p.pyeditor.buffer_clip
+import wayround_i2p.pyeditor.config
+import wayround_i2p.pyeditor.main_menu
+import wayround_i2p.pyeditor.project_clip
+import wayround_i2p.pyeditor.project_menu
+import wayround_i2p.pyeditor.modes.dummy
 
 
 class MainWindow:
 
     def __init__(self):
 
-        self.cfg = wayround_org.pyeditor.config.Config(self)
+        self.cfg = wayround_i2p.pyeditor.config.Config(self)
         self.cfg.load()
 
         self.mode_interface = None
         self.current_buffer = None
-        self.projects = wayround_org.pyeditor.project_clip.ProjectClip(self)
+        self.projects = wayround_i2p.pyeditor.project_clip.ProjectClip(self)
         self.projects.connect('list-changed', self.on_projects_list_changed)
         self.open_projects = []
 
@@ -46,8 +46,8 @@ class MainWindow:
         window.set_hide_titlebar_when_maximized(True)
         window.connect('delete-event', self.on_delete)
 
-        self.main_menu = wayround_org.pyeditor.main_menu.MainMenu(self)
-        buffer_clip = wayround_org.pyeditor.buffer_clip.BufferClip(self)
+        self.main_menu = wayround_i2p.pyeditor.main_menu.MainMenu(self)
+        buffer_clip = wayround_i2p.pyeditor.buffer_clip.BufferClip(self)
         buffer_clip.connect(
             'list-changed-edit', self.on_buffer_clip_list_changed_edit
             )
@@ -152,7 +152,7 @@ class MainWindow:
         _c.set_title('Name')
         projects_listview.append_column(_c)
 
-        project_treeview = wayround_org.utils.gtk.DirectoryTreeView()
+        project_treeview = wayround_i2p.utils.gtk.DirectoryTreeView()
         self.project_treeview = project_treeview
         project_treeview.connect(
             'row-activated',
@@ -200,7 +200,7 @@ class MainWindow:
             True
             )
 
-        self.project_menu = wayround_org.pyeditor.project_menu.ProjectMenu(
+        self.project_menu = wayround_i2p.pyeditor.project_menu.ProjectMenu(
             self,
             self.project_treeview
             )
@@ -285,7 +285,7 @@ class MainWindow:
             ):
         ret = 0
 
-        filename = wayround_org.utils.path.realpath(filename)
+        filename = wayround_i2p.utils.path.realpath(filename)
         # print("filename: {}".format(filename))
 
         mode = MODES['dummy']
@@ -588,12 +588,12 @@ class MainWindow:
 
         proj_dict = self.projects.get_dict()
 
-        b_filename = wayround_org.utils.path.realpath(buff.get_filename())
+        b_filename = wayround_i2p.utils.path.realpath(buff.get_filename())
 
         proj_name = ''
 
         for j, k in proj_dict.items():
-            k_plus_slash = wayround_org.utils.path.realpath(k) + '/'
+            k_plus_slash = wayround_i2p.utils.path.realpath(k) + '/'
             if b_filename.startswith(k_plus_slash):
                 proj_name = j
                 break
@@ -602,9 +602,9 @@ class MainWindow:
 
         if proj_name != '':
             disp_file_path = os.path.dirname(
-                wayround_org.utils.path.relpath(
+                wayround_i2p.utils.path.relpath(
                     b_filename,
-                    wayround_org.utils.path.realpath(proj_dict[proj_name])
+                    wayround_i2p.utils.path.realpath(proj_dict[proj_name])
                     )
                 )
 
@@ -624,14 +624,14 @@ class MainWindow:
         id_, buff = tup
         m = self.buffer_listview.get_model()
 
-        b_filename = wayround_org.utils.path.realpath(buff.get_filename())
+        b_filename = wayround_i2p.utils.path.realpath(buff.get_filename())
 
         proj_dict = self.projects.get_dict()
 
         proj_name = ''
 
         for j, k in proj_dict.items():
-            k_plus_slash = wayround_org.utils.path.realpath(k) + '/'
+            k_plus_slash = wayround_i2p.utils.path.realpath(k) + '/'
             if b_filename.startswith(k_plus_slash):
                 proj_name = j
                 break
@@ -726,7 +726,7 @@ class MainWindow:
 
     def on_project_treeview_row_activated(self, widget, path, column):
         pth = self.project_treeview.convert_indices_to_path(path.get_indices())
-        fpth = wayround_org.utils.path.join(
+        fpth = wayround_i2p.utils.path.join(
             self.project_treeview.get_root_directory(),
             pth
             )
@@ -754,7 +754,7 @@ def load_mode(name='dummy'):
 
     try:
         mod = importlib.import_module(
-            'wayround_org.pyeditor.modes.{}'.format(name)
+            'wayround_i2p.pyeditor.modes.{}'.format(name)
             )
     except:
         logging.exception("Can't load module `{}'".format(name))
@@ -766,7 +766,7 @@ def load_mode(name='dummy'):
 
 def find_modes():
     mf = modulefinder.ModuleFinder()
-    ret = list(mf.find_all_submodules(wayround_org.pyeditor.modes))
+    ret = list(mf.find_all_submodules(wayround_i2p.pyeditor.modes))
     if 'text_plain' in ret:
         text_plain_pos = ret.index('text_plain')
         ret = ret[:text_plain_pos] + ret[text_plain_pos + 1:] + ['text_plain']
@@ -789,7 +789,7 @@ def create_module_map():
         try:
 
             mod = importlib.import_module(
-                'wayround_org.pyeditor.modes.{}'.format(i)
+                'wayround_i2p.pyeditor.modes.{}'.format(i)
                 )
 
         except:

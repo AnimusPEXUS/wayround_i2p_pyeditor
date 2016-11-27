@@ -12,37 +12,44 @@ from gi.repository import GtkSource
 from gi.repository import Pango
 from gi.repository import GLib
 
-import wayround_org.utils.path
-import wayround_org.utils.timer
-import wayround_org.utils.gtk
+import wayround_i2p.utils.path
+import wayround_i2p.utils.timer
+import wayround_i2p.utils.gtk
 
-import wayround_org.pyeditor.buffer
-import wayround_org.pyeditor.module_commons
-
-
-MODE_NAME = 'c'
-
-SUPPORTED_MIME = ['text/x-c-source']
-
-SUPPORTED_FNM = ['*.c',  '*.h']
+import wayround_i2p.pyeditor.buffer
+import wayround_i2p.pyeditor.module_commons
 
 
-METHOD_REGEXP = re.compile(
-    r'(\@\w+\s*)?'
-    r'((public|protected|private|abstract|static|final|strictfp)\s+)*'
-    r'\w+\s*(?!(new|catch|if|for|while)\s+)\(.*?\).*?[{;]',
-    flags=re.S
+MODE_NAME = 'makefile'
+
+SUPPORTED_MIME = ['text/x-makefile']
+
+SUPPORTED_FNM = ['*.mk', 'Makefile', 'Makefile']
+
+CONDITION_REGEXP = re.compile(
+    r'^(if|ifdef|else|endif|elif|define)\s+',
+    flags=re.I | re.M
+    )
+
+TARGET_REGEXP = re.compile(
+    r'^(?!\t+).*\:',
+    flags=re.M
+    )
+
+ASSIGNMENT_REGEXP = re.compile(
+    r'^\w+\s*=',
+    flags=re.M
     )
 
 
-class Buffer(wayround_org.pyeditor.module_commons.Buffer):
+class Buffer(wayround_i2p.pyeditor.module_commons.Buffer):
 
     @staticmethod
     def get_mode_interface():
         return ModeInterface
 
 
-class View(wayround_org.pyeditor.module_commons.View):
+class View(wayround_i2p.pyeditor.module_commons.View):
 
     @staticmethod
     def get_language_name():
@@ -54,7 +61,7 @@ class View(wayround_org.pyeditor.module_commons.View):
         self.view.set_highlight_current_line(True)
         self.view.set_indent_on_tab(True)
         self.view.set_indent_width(4)
-        self.view.set_insert_spaces_instead_of_tabs(True)
+        self.view.set_insert_spaces_instead_of_tabs(False)
         self.view.set_right_margin_position(80)
         self.view.set_show_line_marks(True)
         self.view.set_show_line_numbers(True)
@@ -114,7 +121,6 @@ class SourceMenu:
         source_pep8_mi = Gtk.MenuItem.new_with_label("Use pep8.py")
         source_pep8_mi.set_no_show_all(True)
         source_autopep8_mi = Gtk.MenuItem.new_with_label("Use autopep8.py")
-        source_autopep8_mi.set_no_show_all(True)
         source_autopep8_mi.add_accelerator(
             'activate',
             main_window.accel_group,
@@ -155,6 +161,7 @@ class SourceMenu:
             'activate',
             self.on_navigate_refresh_outline_mi
             )
+
         edit_delete_trailing_whitespace_mi = Gtk.MenuItem.new_with_label(
             "Delete Trailing Whitespace"
             )
@@ -239,7 +246,7 @@ class SourceMenu:
 
     def on_edit_delete_line_mi(self, mi):
         b = self.main_window.current_buffer.get_buffer()
-        wayround_org.pyeditor.module_commons.delete_selected_lines(b)
+        wayround_i2p.pyeditor.module_commons.delete_selected_lines(b)
         return
 
     def on_navigate_refresh_outline_mi(self, mi):
@@ -250,11 +257,11 @@ class SourceMenu:
 
     def _get_selected_lines(self):
         b = self.main_window.current_buffer.get_buffer()
-        return wayround_org.pyeditor.module_commons.get_selected_lines(b)
+        return wayround_i2p.pyeditor.module_commons.get_selected_lines(b)
 
     def on_indent_mi(self, mi, de=False):
         b = self.main_window.current_buffer.get_buffer()
-        wayround_org.pyeditor.module_commons.indent_buffer(b, de, 4)
+        wayround_i2p.pyeditor.module_commons.indent_buffer(b, de, 4)
         return
 
     def on_delete_trailing_whitespace_mi(self, mi):
@@ -269,7 +276,7 @@ class SourceMenu:
 
         buff.save_state()
 
-        t = wayround_org.pyeditor.module_commons.delete_trailing_whitespace(t)
+        t = wayround_i2p.pyeditor.module_commons.delete_trailing_whitespace(t)
 
         b.set_text(t)
 
@@ -277,10 +284,9 @@ class SourceMenu:
         return
 
 
-class Outline(wayround_org.pyeditor.module_commons.Outline):
+class Outline(wayround_i2p.pyeditor.module_commons.Outline):
 
     def search(self, buff):
-
         res = {}
 
         t = buff.get_text(
@@ -289,63 +295,99 @@ class Outline(wayround_org.pyeditor.module_commons.Outline):
             False
             )
 
-        excluded_ranges = []
+        for i in CONDITION_REGEXP.finditer(t):
 
-        comments = wayround_org.pyeditor.module_commons.find_c_comments(t)
+            line = buff.get_iter_at_offset(i.start()).get_line()
+            s = buff.get_iter_at_line(line)
+            e = buff.get_iter_at_offset(i.end())
 
-        excluded_ranges += comments
+            t2 = buff.get_text(s, e, False)
 
-        last_start = 0
-        while True:
+            res[line] = t2
 
-            i = METHOD_REGEXP.search(t, last_start)
+        for i in TARGET_REGEXP.finditer(t):
 
-            if not i:
-                break
+            line = buff.get_iter_at_offset(i.start()).get_line()
+            s = buff.get_iter_at_line(line)
+            e = buff.get_iter_at_offset(i.end())
 
-            m_start = i.start()
-            m_end = i.end()
+            t2 = buff.get_text(s, e, False)
 
-            last_start = m_end + 1
+            res[line] = t2
 
-            i_r = range(m_start, m_end)
+        for i in ASSIGNMENT_REGEXP.finditer(t):
 
-            in_excluded_ranges = False
-            for j in excluded_ranges:
+            line = buff.get_iter_at_offset(i.start()).get_line()
+            s = buff.get_iter_at_line(line)
+            e = buff.get_iter_at_offset(i.end())
 
-                if i_r.start in j or i_r.stop in j:
-                    in_excluded_ranges = True
-                    break
+            t2 = buff.get_text(s, e, False)
 
-                if j.start in i_r or j.stop in i_r:
-                    in_excluded_ranges = True
-                    break
-
-            if not in_excluded_ranges:
-                line = buff.get_iter_at_offset(m_start).get_line()
-                s = buff.get_iter_at_line(line)
-                e = buff.get_iter_at_offset(m_end)
-
-                t2 = buff.get_text(s, e, False)
-                # t2 = t[m_start: m_end]
-
-                # res[line] = t2.strip()
-                t2s = t2.strip()
-                if (not t2s.endswith(';')
-                        and not t2s.startswith('if')
-                        and not t2s.startswith('for')
-                        and not t2s.startswith('with')):
-                    res[line] = t2
-                    excluded_ranges.append(i_r)
+            res[line] = t2
 
         return res
+
+
+class SourceCompletionProvider(
+        GObject.GObject,
+        GtkSource.CompletionProvider
+        ):
+
+    def __init__(self):
+        super().__init__()
+        print("__init__")
+        return
+
+    def do_get_name(self):
+        print("get_name")
+        return "Python Completion Provider"
+
+    def do_get_icon(self):
+        print("get_icon")
+        return None
+
+    def do_populate(self, context):
+        print("populate")
+        p1 = GtkSource.CompletionItem.new('label1', '111', None, None)
+        p2 = GtkSource.CompletionItem.new('label2', '222', None, None)
+        p3 = GtkSource.CompletionItem.new('label3', '333', None, None)
+        context.add_proposals(self, [p1, p2, p3], True)
+        return
+
+    def do_get_activation(self):
+        print("activation")
+        return GtkSource.CompletionActivation.USER_REQUESTED
+
+    def do_match(self, context):
+        print("match")
+        # itera = context.get_iter()
+        return True
+
+    # def do_get_info_widget(self, proposal):
+    #    return
+
+    def do_update_info(self, proposal, info):
+        print("update_info: {}, {}".format(proposal, info))
+        return
+
+    # def do_get_start_iter(self, context, proposal, itera):
+    #    return
+
+    # def do_activate_proposal(self, proposal, iter):
+    #    return
+
+    def do_get_interactive_delay(self):
+        return -1
+
+    # def do_get_priority(self):
+    #     return 0
 
 
 class ModeInterface:
 
     @staticmethod
     def get_menu_name():
-        return "C"
+        return "Makefile"
 
     def __init__(self, main_window):
         self.main_window = main_window
@@ -387,11 +429,11 @@ class ModeInterface:
         if not isinstance(buff, Buffer):
             raise Exception(
                 "`buff' must be an instance of "
-                "wayround_org.pyeditor.modes.python.Buffer"
+                "wayround_i2p.pyeditor.modes.python.Buffer"
                 )
 
         buff.set_mode_interface(self)
-        buff.set_language(self.lang_mgr.get_language('c'))
+        buff.set_language(self.lang_mgr.get_language('makefile'))
         self.view.set_buffer(buff)
         self.outline.reload()
         return
@@ -401,4 +443,4 @@ class ModeInterface:
 
 
 def indent(txt, de=False):
-    return wayround_org.pyeditor.module_commons.indent_text(txt, de, 4)
+    return wayround_i2p.pyeditor.module_commons.indent_text(txt, de, 4)

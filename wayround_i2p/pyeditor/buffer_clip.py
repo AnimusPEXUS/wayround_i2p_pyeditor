@@ -5,9 +5,9 @@ import collections
 from gi.repository import GObject
 from gi.repository import Gtk
 
-import wayround_org.pyeditor.buffer
-import wayround_org.utils.path
-import wayround_org.utils.gtk
+import wayround_i2p.pyeditor.buffer
+import wayround_i2p.utils.path
+import wayround_i2p.utils.gtk
 
 
 class ConfigFileListLoadingProcessWindow:
@@ -89,10 +89,10 @@ class BufferClip(GObject.GObject):
 
     def add(self, buff):
 
-        if not isinstance(buff, wayround_org.pyeditor.buffer.Buffer):
+        if not isinstance(buff, wayround_i2p.pyeditor.buffer.Buffer):
             raise Exception(
                 "`buff' must be an instance of "
-                "wayround_org.pyeditor.buffer.Buffer"
+                "wayround_i2p.pyeditor.buffer.Buffer"
                 )
 
         self.buffers.append(buff)
@@ -109,10 +109,10 @@ class BufferClip(GObject.GObject):
 
     def remove(self, buff):
 
-        if not isinstance(buff, wayround_org.pyeditor.buffer.Buffer):
+        if not isinstance(buff, wayround_i2p.pyeditor.buffer.Buffer):
             raise Exception(
                 "`buff' must be an instance of "
-                "wayround_org.pyeditor.buffer.Buffer"
+                "wayround_i2p.pyeditor.buffer.Buffer"
                 )
 
         ret = 0
@@ -132,7 +132,7 @@ class BufferClip(GObject.GObject):
 
         for i in self.buffers:
 
-            setting_name = wayround_org.utils.path.realpath(i.get_filename())
+            setting_name = wayround_i2p.utils.path.realpath(i.get_filename())
 
             cfg[setting_name] = i.get_config()
 
@@ -179,10 +179,10 @@ class BufferClip(GObject.GObject):
                     pw.set_fraction(0)
                 else:
                     pw.set_fraction(1.0 / (lck_l / ii))
-                wayround_org.utils.gtk.process_events()
+                wayround_i2p.utils.gtk.process_events()
 
             pw.set_fraction(1)
-            wayround_org.utils.gtk.process_events()
+            wayround_i2p.utils.gtk.process_events()
             pw.destroy()
 
         return

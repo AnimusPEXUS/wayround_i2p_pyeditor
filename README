@@ -15,13 +15,13 @@ GitHub is currently the main publication point for this software.
 This project is registered within the PyPi, so, yes, I want it to be
 installed as easy as:
 
-pip3 install -U org_wayround_pyeditor
+pip3 install -U wayround_i2p_pyeditor
 
 This project depends on My other project - org_wayround_utils - it
 should be downloaded and installed automatically with above pip
 command.
 
-https://github.com/AnimusPEXUS/org_wayround_pyeditor
+https://github.com/AnimusPEXUS/wayround_i2p_pyeditor
 
 
 SOFTWARE REQUIREMENTS

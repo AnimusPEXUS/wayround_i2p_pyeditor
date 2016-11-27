@@ -3,10 +3,10 @@ import os.path
 
 from gi.repository import Gtk, Gdk, Pango
 
-import wayround_org.pyeditor.add_project_dialog
-import wayround_org.pyeditor.buffer
+import wayround_i2p.pyeditor.add_project_dialog
+import wayround_i2p.pyeditor.buffer
 
-import wayround_org.utils.path
+import wayround_i2p.utils.path
 
 
 class MainMenu:
@@ -169,8 +169,8 @@ class MainMenu:
         path = self.main_window.project_treeview.get_selected_path()
 
         if not os.path.isdir(path):
-            path_spl = wayround_org.utils.path.split(path)
-            p = wayround_org.utils.path.join(path_spl[:-1])
+            path_spl = wayround_i2p.utils.path.split(path)
+            p = wayround_i2p.utils.path.join(path_spl[:-1])
             if os.path.isdir(p):
                 path = p
 
@@ -219,7 +219,7 @@ class MainMenu:
         return
 
     def on_project_add_mi(self, mi):
-        d = wayround_org.pyeditor.add_project_dialog.AddProjectDialog(
+        d = wayround_i2p.pyeditor.add_project_dialog.AddProjectDialog(
             self.main_window
             )
         res = d.run()

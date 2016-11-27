@@ -12,39 +12,39 @@ from gi.repository import GtkSource
 from gi.repository import Pango
 from gi.repository import GLib
 
-import wayround_org.utils.path
-import wayround_org.utils.timer
-import wayround_org.utils.gtk
+import wayround_i2p.utils.path
+import wayround_i2p.utils.timer
+import wayround_i2p.utils.gtk
 
-import wayround_org.pyeditor.buffer
-import wayround_org.pyeditor.module_commons
+import wayround_i2p.pyeditor.buffer
+import wayround_i2p.pyeditor.module_commons
 
 
-MODE_NAME = 'cython'
+MODE_NAME = 'python'
 
-SUPPORTED_MIME = []
+SUPPORTED_MIME = ['text/x-python']
 
-SUPPORTED_FNM = ['*.pyx']
+SUPPORTED_FNM = ['*.py']
 
 SYMBOL_REGEXP = re.compile(
-    r'^[ \t]*(cdef| def |class )(.|\n)*?\s*:[ \t]*$',
+    r'^[ \t]*(def |class )(.|\n)*?\s*:[ \t]*$',
     flags=re.M
     )
 
-# SYMBOL2_REGEXP = re.compile(
-#     r'^([ \t]*[a-zA-Z_][a-zA-Z0-9_\.]*?)[ \t]*\=.*$',
-#     flags=re.M
-#     )
+SYMBOL2_REGEXP = re.compile(
+    r'^([ \t]*[a-zA-Z_][a-zA-Z0-9_\.]*?)[ \t]*\=.*$',
+    flags=re.M
+    )
 
 
-class Buffer(wayround_org.pyeditor.module_commons.Buffer):
+class Buffer(wayround_i2p.pyeditor.module_commons.Buffer):
 
     @staticmethod
     def get_mode_interface():
         return ModeInterface
 
 
-class View(wayround_org.pyeditor.module_commons.View):
+class View(wayround_i2p.pyeditor.module_commons.View):
 
     @staticmethod
     def get_language_name():
@@ -113,8 +113,6 @@ class SourceMenu:
             True
             )
 
-        source_pep8_mi = Gtk.MenuItem.new_with_label("Use pep8.py")
-        source_pep8_mi.set_no_show_all(True)
         source_autopep8_mi = Gtk.MenuItem.new_with_label("Use autopep8.py")
         source_autopep8_mi.add_accelerator(
             'activate',
@@ -186,7 +184,6 @@ class SourceMenu:
         source_me.append(source_dedent_mi)
         source_me.append(Gtk.SeparatorMenuItem())
 
-        source_me.append(source_pep8_mi)
         source_me.append(source_autopep8_mi)
         source_me.append(edit_delete_trailing_whitespace_mi)
         source_me.append(Gtk.SeparatorMenuItem())
@@ -229,11 +226,11 @@ class SourceMenu:
                 t = autopep8.fix_code(
                     t,
                     options=autopep8.parse_args(
-                        ['--aggressive', 
-                         '--ignore', 'E123,E721', 
-                         #'--ignore', '', 
+                        ['--aggressive',
+                         '--ignore', 'E123,E721',
+                         #'--ignore', '',
                          ''
-                        ]
+                         ]
                         )
                     )
 
@@ -245,7 +242,7 @@ class SourceMenu:
 
     def on_edit_delete_line_mi(self, mi):
         b = self.main_window.current_buffer.get_buffer()
-        wayround_org.pyeditor.module_commons.delete_selected_lines(b)
+        wayround_i2p.pyeditor.module_commons.delete_selected_lines(b)
         return
 
     def on_navigate_refresh_outline_mi(self, mi):
@@ -256,11 +253,11 @@ class SourceMenu:
 
     def _get_selected_lines(self):
         b = self.main_window.current_buffer.get_buffer()
-        return wayround_org.pyeditor.module_commons.get_selected_lines(b)
+        return wayround_i2p.pyeditor.module_commons.get_selected_lines(b)
 
     def on_indent_mi(self, mi, de=False):
         b = self.main_window.current_buffer.get_buffer()
-        wayround_org.pyeditor.module_commons.indent_buffer(b, de, 4)
+        wayround_i2p.pyeditor.module_commons.indent_buffer(b, de, 4)
         return
 
     def on_delete_trailing_whitespace_mi(self, mi):
@@ -275,7 +272,7 @@ class SourceMenu:
 
         buff.save_state()
 
-        t = wayround_org.pyeditor.module_commons.delete_trailing_whitespace(t)
+        t = wayround_i2p.pyeditor.module_commons.delete_trailing_whitespace(t)
 
         b.set_text(t)
 
@@ -283,7 +280,7 @@ class SourceMenu:
         return
 
 
-class Outline(wayround_org.pyeditor.module_commons.Outline):
+class Outline(wayround_i2p.pyeditor.module_commons.Outline):
 
     def search(self, buff):
         res = {}
@@ -295,6 +292,16 @@ class Outline(wayround_org.pyeditor.module_commons.Outline):
             )
 
         for i in SYMBOL_REGEXP.finditer(t):
+
+            line = buff.get_iter_at_offset(i.start()).get_line()
+            s = buff.get_iter_at_line(line)
+            e = buff.get_iter_at_offset(i.end())
+
+            t2 = buff.get_text(s, e, False)
+
+            res[line] = t2
+
+        for i in SYMBOL2_REGEXP.finditer(t):
 
             line = buff.get_iter_at_offset(i.start()).get_line()
             s = buff.get_iter_at_line(line)
@@ -366,7 +373,7 @@ class ModeInterface:
 
     @staticmethod
     def get_menu_name():
-        return "Cython"
+        return "Python"
 
     def __init__(self, main_window):
         self.main_window = main_window
@@ -391,6 +398,14 @@ class ModeInterface:
         self.view.destroy()
         return
 
+    def settings_changed(self):
+        font_desc = Pango.FontDescription.from_string(
+            self.main_window.get_fixed_text_editor_font_desc()
+            )
+        self.outline.outline.override_font(font_desc)
+        self.view.get_view_widget().override_font(font_desc)
+        return
+
     def get_menu(self):
         return self.source_menu.get_widget()
 
@@ -408,7 +423,7 @@ class ModeInterface:
         if not isinstance(buff, Buffer):
             raise Exception(
                 "`buff' must be an instance of "
-                "wayround_org.pyeditor.modes.python.Buffer"
+                "wayround_i2p.pyeditor.modes.python.Buffer"
                 )
 
         buff.set_mode_interface(self)
@@ -422,4 +437,4 @@ class ModeInterface:
 
 
 def indent(txt, de=False):
-    return wayround_org.pyeditor.module_commons.indent_text(txt, de, 4)
+    return wayround_i2p.pyeditor.module_commons.indent_text(txt, de, 4)

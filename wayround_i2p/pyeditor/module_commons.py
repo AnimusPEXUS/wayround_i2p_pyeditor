@@ -12,11 +12,11 @@ from gi.repository import GtkSource
 from gi.repository import Pango
 from gi.repository import GLib
 
-import wayround_org.utils.path
-import wayround_org.utils.timer
-import wayround_org.utils.gtk
+import wayround_i2p.utils.path
+import wayround_i2p.utils.timer
+import wayround_i2p.utils.gtk
 
-import wayround_org.pyeditor.buffer
+import wayround_i2p.pyeditor.buffer
 
 C_COMMENT_RE = re.compile(
     r'/\*.*?\*/',
@@ -30,7 +30,7 @@ CPP_COMMENT_RE = re.compile(
 
 class Buffer(
         GObject.GObject,
-        wayround_org.pyeditor.buffer.Buffer
+        wayround_i2p.pyeditor.buffer.Buffer
         ):
 
     __gsignals__ = {
@@ -95,7 +95,7 @@ class Buffer(
         if filename is None:
             filename = self.filename
 
-        filename = wayround_org.utils.path.abspath(filename)
+        filename = wayround_i2p.utils.path.abspath(filename)
 
         d = os.path.dirname(filename)
 

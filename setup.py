@@ -4,22 +4,22 @@ from setuptools import setup
 
 
 setup(
-    name='wayround_org_pyeditor',
-    version='0.3.3',
+    name='wayround_i2p_pyeditor',
+    version='0.3.4',
     description='Simple extansible editor with projects and outline',
     author='Alexey V Gorshkov',
     author_email='animus@wayround.org',
-    url='https://github.com/AnimusPEXUS/wayround_org_pyeditor',
+    url='https://github.com/AnimusPEXUS/wayround_i2p_pyeditor',
     packages=[
-        'wayround_org.pyeditor',
-        'wayround_org.pyeditor.modes'
+        'wayround_i2p.pyeditor',
+        'wayround_i2p.pyeditor.modes'
         ],
     classifiers=[
         'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
         'Operating System :: POSIX'
         ],
     entry_points={
-        'console_scripts': 'pyeditor = wayround_org.pyeditor.main'
+        'console_scripts': 'pyeditor = wayround_i2p.pyeditor.main'
         },
-    install_requires=['wayround_org_utils']
+    install_requires=['wayround_i2p_utils']
     )

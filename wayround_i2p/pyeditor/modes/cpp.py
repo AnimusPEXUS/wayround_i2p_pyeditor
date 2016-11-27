@@ -12,12 +12,12 @@ from gi.repository import GtkSource
 from gi.repository import Pango
 from gi.repository import GLib
 
-import wayround_org.utils.path
-import wayround_org.utils.timer
-import wayround_org.utils.gtk
+import wayround_i2p.utils.path
+import wayround_i2p.utils.timer
+import wayround_i2p.utils.gtk
 
-import wayround_org.pyeditor.buffer
-import wayround_org.pyeditor.module_commons
+import wayround_i2p.pyeditor.buffer
+import wayround_i2p.pyeditor.module_commons
 
 
 MODE_NAME = 'cpp'
@@ -39,14 +39,14 @@ METHOD_REGEXP = re.compile(
     )
 
 
-class Buffer(wayround_org.pyeditor.module_commons.Buffer):
+class Buffer(wayround_i2p.pyeditor.module_commons.Buffer):
 
     @staticmethod
     def get_mode_interface():
         return ModeInterface
 
 
-class View(wayround_org.pyeditor.module_commons.View):
+class View(wayround_i2p.pyeditor.module_commons.View):
 
     @staticmethod
     def get_language_name():
@@ -260,7 +260,7 @@ class SourceMenu:
 
     def on_edit_delete_line_mi(self, mi):
         b = self.main_window.current_buffer.get_buffer()
-        wayround_org.pyeditor.module_commons.delete_selected_lines(b)
+        wayround_i2p.pyeditor.module_commons.delete_selected_lines(b)
         return
 
     def on_navigate_refresh_outline_mi(self, mi):
@@ -271,11 +271,11 @@ class SourceMenu:
 
     def _get_selected_lines(self):
         b = self.main_window.current_buffer.get_buffer()
-        return wayround_org.pyeditor.module_commons.get_selected_lines(b)
+        return wayround_i2p.pyeditor.module_commons.get_selected_lines(b)
 
     def on_indent_mi(self, mi, de=False):
         b = self.main_window.current_buffer.get_buffer()
-        wayround_org.pyeditor.module_commons.indent_buffer(b, de, 4)
+        wayround_i2p.pyeditor.module_commons.indent_buffer(b, de, 4)
         return
 
     def on_delete_trailing_whitespace_mi(self, mi):
@@ -290,7 +290,7 @@ class SourceMenu:
 
         buff.save_state()
 
-        t = wayround_org.pyeditor.module_commons.delete_trailing_whitespace(t)
+        t = wayround_i2p.pyeditor.module_commons.delete_trailing_whitespace(t)
 
         b.set_text(t)
 
@@ -298,7 +298,7 @@ class SourceMenu:
         return
 
 
-class Outline(wayround_org.pyeditor.module_commons.Outline):
+class Outline(wayround_i2p.pyeditor.module_commons.Outline):
 
     def search(self, buff):
 
@@ -312,7 +312,7 @@ class Outline(wayround_org.pyeditor.module_commons.Outline):
 
         excluded_ranges = []
 
-        comments = wayround_org.pyeditor.module_commons.find_c_comments(t)
+        comments = wayround_i2p.pyeditor.module_commons.find_c_comments(t)
 
         excluded_ranges += comments
 
@@ -408,7 +408,7 @@ class ModeInterface:
         if not isinstance(buff, Buffer):
             raise Exception(
                 "`buff' must be an instance of "
-                "wayround_org.pyeditor.modes.python.Buffer"
+                "wayround_i2p.pyeditor.modes.python.Buffer"
                 )
 
         buff.set_mode_interface(self)
@@ -422,4 +422,4 @@ class ModeInterface:
 
 
 def indent(txt, de=False):
-    return wayround_org.pyeditor.module_commons.indent_text(txt, de, 4)
+    return wayround_i2p.pyeditor.module_commons.indent_text(txt, de, 4)
