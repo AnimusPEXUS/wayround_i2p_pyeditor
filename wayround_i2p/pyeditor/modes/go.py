@@ -27,7 +27,7 @@ SUPPORTED_MIME = []
 SUPPORTED_FNM = ['*.go']
 
 SYMBOL_REGEXP = re.compile(
-    r'^[ \t]*(func |struct )(.|\n)*?\s*:[ \t]*$',
+    r'^[ \t]*func .*$',
     flags=re.M
     )
 
@@ -309,6 +309,8 @@ class Outline(wayround_i2p.pyeditor.module_commons.Outline):
 
             res[line] = t2
 
+        '''
+
         for i in SYMBOL2_REGEXP.finditer(t):
 
             line = buff.get_iter_at_offset(i.start()).get_line()
@@ -318,6 +320,8 @@ class Outline(wayround_i2p.pyeditor.module_commons.Outline):
             t2 = buff.get_text(s, e, False)
 
             res[line] = t2
+
+        '''
 
         return res
 
