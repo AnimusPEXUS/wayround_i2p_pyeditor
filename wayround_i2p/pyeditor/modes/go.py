@@ -27,7 +27,7 @@ SUPPORTED_MIME = []
 SUPPORTED_FNM = ['*.go']
 
 SYMBOL_REGEXP = re.compile(
-    r'^[ \t]*func .*$',
+    r'^[ \t]*(func |var |const |type |import ).*$',
     flags=re.M
     )
 
@@ -55,14 +55,14 @@ class View(wayround_i2p.pyeditor.module_commons.View):
         self.view.set_draw_spaces(GtkSource.DrawSpacesFlags.ALL)
         self.view.set_highlight_current_line(True)
         self.view.set_indent_on_tab(True)
-        self.view.set_indent_width(4)
-        self.view.set_insert_spaces_instead_of_tabs(True)
+        self.view.set_indent_width(2)
+        self.view.set_insert_spaces_instead_of_tabs(False)
         self.view.set_right_margin_position(80)
         self.view.set_show_line_marks(True)
         self.view.set_show_line_numbers(True)
         self.view.set_show_right_margin(True)
         self.view.set_smart_home_end(True)
-        self.view.set_tab_width(4)
+        self.view.set_tab_width(2)
 
         return
 
